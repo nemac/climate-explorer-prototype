@@ -58,6 +58,20 @@
     }
 */
 
+        $('#coverage-slider').slider({
+            min    : 0,
+            max    : 100,
+            step   : 1,
+            value  : 90,
+            slide  : function(event, ui) {
+                $('#coverage-text')[0].innerHTML = ui.value;
+            },
+            change  : function(event, ui) {
+                updateStations();
+            }
+        });
+        $('#coverage-text')[0].innerHTML = $('#coverage-slider').slider('value');
+
         $('#timerange-slider').slider({
             min    : 1750,
             max    : 2013,
@@ -100,7 +114,6 @@
             }(element));
         }
 
-
         function updateStations() {
             var i, checked_elements = [];
             for (i=0; i<elements.length; ++i) {
@@ -110,8 +123,6 @@
                 }
             }
             var values = $('#timerange-slider').slider('values');
-            $('#message')[0].innerHTML = 
-                checked_elements.join(',') + '; ' + values[0] + '--' + values[1];
 
             var minyear = values[0];
             var maxyear = values[1];
@@ -122,8 +133,9 @@
             }
 
             $.when.apply(this, inventoryPromises).then(function() {
-                var stationsToShow = [], i, id, station, j, element, station_ok;
+                var stationsToShow = [], i, id, station, j, element, station_ok, coverage_threshold;
                 if (checked_elements.length > 0) {
+                    coverage_threshold = $('#coverage-slider').slider('value') / 100.0;
                     for (i=0; i<stationIds.length; ++i) {
                         id = stationIds[i];
                         station = stations[id];
@@ -132,14 +144,27 @@
                             element = checked_elements[j];
                             station_ok = ((inventory[element][id] !== undefined)
                                           && (inventory[element][id].min <= minyear)
-                                          && (inventory[element][id].max >= maxyear));
+                                          && (inventory[element][id].max >= maxyear)
+                                          && (inventory[element][id].cov >= coverage_threshold));
                         }
                         if (station_ok) {
                             stationsToShow.push(station);
                         }
                     }
                 }
-                showStations(stationsToShow);
+                showStations(stationsToShow, minyear, maxyear);
+                if (stationsToShow.length > 0) {
+                $('#station-choice-message')[0].innerHTML =
+                    Mustache.render('Showing {{{n}}} stations with {{{elements}}} from {{{minyear}}} to {{{maxyear}}}.',
+                                    {
+                                        n        : stationsToShow.length,
+                                        elements : checked_elements.join(','),
+                                        minyear  : minyear,
+                                        maxyear  : maxyear
+                                        });
+                } else {
+                    $('#station-choice-message')[0].innerHTML = "No stations meet the selected criteria.";
+                }
             });
         }
 
@@ -148,7 +173,6 @@
                 dataType: "text",
                 success: function (data) {
                     parseStations(data);
-                    console.log('name of one is: ' + stations['AG000060680'].name);
                 },
                 error: function (err) {
                     console.log('ERROR');
@@ -189,7 +213,7 @@
                     inventory[element][columns[0]] = {
                         min : columns[1],
                         max : columns[2],
-                        cov : columns[3]
+                        cov : parseFloat(columns[3])
                     };
                 }
             }
@@ -248,8 +272,28 @@
             });
     };
 
+        function inv_to_values(data) {
+            var lines = data.split("\n"),
+                i, j,
+                columns,
+                rows = [];
+            for (i=0; i<lines.length; ++i) {
+                if (/,/.test(lines[i])) { // skip line unless it contains a comma
+                    columns = lines[i].split(/\s*,\s*/);
+                    var yyyymm = columns[0];
+                    for (j=1; j<columns.length; ++j) {
+                        var val = columns[j];
+                        if (val === 'M') { val = "-9999"; }
+                        rows.push(sprintf("%s%02d,%s", yyyymm, j, val));
+                    }
+                }
+            }
+            return rows.join("\n");
+        }
 
-    function showStations(stations) {
+
+
+    function showStations(stations, minyear, maxyear) {
         console.log('showing ' + stations.length + ' stations');
         if (stationsLayer !== undefined) {
             ce.map.removeLayer(stationsLayer);
@@ -268,13 +312,60 @@
             var marker = new OpenLayers.Marker(coords,stationMarkerIcon.clone());
             (function () {
                 var name = station.name;
+                var id   = station.id;
+                var markerCoords = coords;
                 marker.events.register('mouseover', marker, function(evt) {
+                    //console.log(name);
+                });
+                marker.events.register('click', marker, function(evt) {
+                    $('#message')[0].innerHTML = 'You clicked on: ' + id;
+                    $.ajax({
+                        url : 'http://dev.nemac.org/~mbp/ghcn-mirror/datfiles/TMAX/' + id + '.dat',
+                        dataType: "text",
+                        success:  function (data) {
+                            displayGraph(data, markerCoords, name, id, minyear, maxyear);
+                        },
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            alert(textStatus);
+                        }
+                    });
                     //console.log(name);
                 });
             }());
             stationsLayer.addMarker(marker);
         }
         ce.map.addLayers([stationsLayer]);
+    }
+
+    function displayGraph(data, coords, name, id, minyear, maxyear) {
+        $.ajax({ url : 'mugl.tpl.xml',
+                 dataType : "text",
+                 success : function (mugl_tpl) {
+                     var muglString = Mustache.render(mugl_tpl, {
+                         mindate : minyear,
+                         maxdate : maxyear,
+                         values  : inv_to_values(data)
+                     });
+                     ce.map.addPopup(new OpenLayers.Popup.FramedCloud(
+                                         "ceMultigraphPopup", 
+                                         coords,
+                                         null,
+                                         '<div id="ceMultigraphMessage">Loading...</div><div id="ceMultigraph" style="width: 600px; height: 300px;"></div>',
+                                         null,
+                                         true));
+                     var promise = window.multigraph.jQuery('#ceMultigraph').multigraph({
+                         //NOTE: coords.lon and coords.lat on the next line are really x,y coords in EPSG:900913, not lon/lat:
+                         'muglString'   : muglString
+                     });
+                     window.multigraph.jQuery('#ceMultigraph').multigraph('done', function() {
+                         $('#ceMultigraphMessage').empty();
+                         $('#ceMultigraphMessage').text(name);
+                     });
+                 },
+                 error: function(jqXHR, textStatus, errorThrown) {
+                     alert(textStatus);
+                 }
+               });
     }
 
     var initOpenLayers = function(baseLayerInfo) {
@@ -305,8 +396,6 @@
 
         ce.map.addLayers([layer]);
         ce.map.setLayerIndex(layer, 0);
-
-        showStations(ce.stations);
 
         ce.map.zoomToExtent(maxExtentBounds, true);
 

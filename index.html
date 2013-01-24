@@ -25,7 +25,6 @@
     <script src="libs/OpenLayers212/lib/OpenLayers/Control/ScaleBar.js"></script>
     <script type="text/javascript" src="libs/mustache/mustache.js"></script>
     <script type="text/javascript" src="libs/sprintf/sprintf-0.7-beta1.js"></script>
-    <script type="text/javascript" src="stations.js"></script>
     <script type="text/javascript" src="ce.js"></script>
     <link type="text/css" rel="stylesheet" href="libs/jquery18/themes/base/jquery.ui.all.css" />
     <script type="text/javascript" src="libs/jquery18/ui/jquery.ui.core.js"></script>
@@ -58,19 +57,32 @@
 
     <div class="use-sidebar sidebar-at-left" id="main">
       <div id="sidebar">
-        Choose Stations
+        Choose stations
         <div id="element-checks-container">
-          Having data for these elements:
+          having data for all of these elements
           <div id="element-checkboxes"></div>
         </div>
+
+        <div id="coverage-slider-container">
+          for
+          <div><div id="coverage-slider"></div><div id="coverage-text"></div>%</div>
+          of days
+        </div>
+
         <div id="timerange-slider-container">
-          During this time period:
+          during this time period:
           <div id="timerange-slider"></div>
           <div id="timerange-text"><span id="timerange-min-text"></span><span id="timerange-max-text"></span></div>
         </div>
+
+        <div id="station-choice-message-container">
+          <div id="station-choice-message">No stations chosen yet.</div>
+        </div>
+
         <div id="message-container">
           <div id="message"></div>
         </div>
+
       </div>
       <a href="#" id="separator"></a>
       <div id="content">

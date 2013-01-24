@@ -53,10 +53,31 @@
     background: #DEF;
 }
 
+#timerange-slider-container {
+  margin:  5px;
+  padding: 5px;
+  border: 1px solid #888;
+}
+
 #timerange-slider, #timerange-text {
    margin-top: 10px;
    margin-left: 30px;
-   width: 400px;
+   width: 370px;
+}
+
+#coverage-slider-container {
+  margin:  5px;
+  padding: 5px;
+  border: 1px solid #888;
+}
+
+#coverage-slider, #coverage-text {
+   margin-top: 10px;
+   margin-left: 30px;
+   width: 350px;
+}
+#coverage-text {
+   display: inline;
 }
 
 #timerange-min-text {
@@ -72,13 +93,13 @@
   background: #555;
 }
 
-#timerange-slider-container {
+#element-checks-container {
   margin:  5px;
   padding: 5px;
   border: 1px solid #888;
 }
 
-#element-checks-container {
+#station-choice-message-container {
   margin:  5px;
   padding: 5px;
   border: 1px solid #888;
