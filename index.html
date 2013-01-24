@@ -54,19 +54,31 @@
 
   </head>
 
-  <body>
+  <body class="nonselectable">
 
-    <table width="100%" height="100%" class="nonselectable">
-      <tr><td>
-          <div id="titleBar">
-            <h2>Climate Explorer</h2>
-          </div>
-      </td></tr>
-
-      <tr height="100%"><td>
-          <div id="map"></div>
-      </td></tr>
-    </table>
+    <div class="use-sidebar sidebar-at-left" id="main">
+      <div id="sidebar">
+        Choose Stations
+        <div id="element-checks-container">
+          Having data for these elements:
+          <div id="element-checkboxes"></div>
+        </div>
+        <div id="timerange-slider-container">
+          During this time period:
+          <div id="timerange-slider"></div>
+          <div id="timerange-text"><span id="timerange-min-text"></span><span id="timerange-max-text"></span></div>
+        </div>
+        <div id="message-container">
+          <div id="message"></div>
+        </div>
+      </div>
+      <a href="#" id="separator"></a>
+      <div id="content">
+        <div id="map"></div>
+      </div>
+      <div class="clearer">&nbsp;</div>
+    </div>
 
   </body>
+
 </html>
