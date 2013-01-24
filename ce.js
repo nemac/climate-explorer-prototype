@@ -7,6 +7,15 @@
     }
     var ce = window.ce;
 
+    var stations;
+    var stationIds;
+    var stationsLayer;
+    var inventory = {};
+
+    var size = new OpenLayers.Size(21,25);
+    var offset = new OpenLayers.Pixel(-(size.w)/2, -size.h);
+    var stationMarkerIcon = new OpenLayers.Icon('http://www.openlayers.org/dev/img/marker.png', size, offset);
+
     ce.init = function() {
 
 
@@ -59,7 +68,7 @@
                 $('#timerange-max-text')[0].innerHTML = ui.values[1];
             },
             change  : function(event, ui) {
-                doReport();
+                updateStations();
             }
         });
         var values = $('#timerange-slider').slider('values');
@@ -86,13 +95,13 @@
             );
             (function(element) {
                 $('#checkbox-'+element).click(function() {
-                    doReport();
+                    updateStations();
                 });
             }(element));
         }
 
 
-        function doReport() {
+        function updateStations() {
             var i, checked_elements = [];
             for (i=0; i<elements.length; ++i) {
                 var element = elements[i];
@@ -103,20 +112,112 @@
             var values = $('#timerange-slider').slider('values');
             $('#message')[0].innerHTML = 
                 checked_elements.join(',') + '; ' + values[0] + '--' + values[1];
+
+            var minyear = values[0];
+            var maxyear = values[1];
+
+            var inventoryPromises = [];
+            for (i=0; i<checked_elements.length; ++i) {
+                inventoryPromises.push(insureInventory(checked_elements[i]));
+            }
+
+            $.when.apply(this, inventoryPromises).then(function() {
+                var stationsToShow = [], i, id, station, j, element, station_ok;
+                if (checked_elements.length > 0) {
+                    for (i=0; i<stationIds.length; ++i) {
+                        id = stationIds[i];
+                        station = stations[id];
+                        station_ok = true;
+                        for (j=0; j<checked_elements.length && station_ok; ++j) {
+                            element = checked_elements[j];
+                            station_ok = ((inventory[element][id] !== undefined)
+                                          && (inventory[element][id].min <= minyear)
+                                          && (inventory[element][id].max >= maxyear));
+                        }
+                        if (station_ok) {
+                            stationsToShow.push(station);
+                        }
+                    }
+                }
+                showStations(stationsToShow);
+            });
         }
 
-
-/*
-        $.ajax({url : 'http://dev.nemac.org/~mbp/ghcn-mirror/ghcnd-stations.csv',
+        $.ajax({url : 'ghcnd-stations.csv',
+                //'small.csv',
                 dataType: "text",
                 success: function (data) {
-                    console.log(data);
+                    parseStations(data);
+                    console.log('name of one is: ' + stations['AG000060680'].name);
                 },
                 error: function (err) {
                     console.log('ERROR');
                     console.log(err);
                 }});
-*/
+
+        function insureInventory(element) {
+            var deferred;
+            if (inventory[element]) {
+                deferred = $.Deferred();
+                deferred.resolve();
+                return deferred.promise();
+            } else {
+                return $.ajax({url : 'inventory/' + element + '.inv',
+                               dataType : "text",
+                               success: function (data) {
+                                   loadInventory(element, data);
+                               },
+                               error: function (err) {
+                                   console.log('ERROR');
+                                   console.log(err);
+                               }});
+            }
+        }
+
+        function loadInventory(element, data) {
+            var lines = data.split("\n"),
+                i,
+                columns;
+            inventory[element] = {};
+            for (i=0; i<lines.length; ++i) {
+                if (/,/.test(lines[i])) { // skip line unless it contains a comma
+                    columns = lines[i].split(/\s*,\s*/);
+                    //columns[0] = id
+                    //columns[1] = mindate
+                    //columns[2] = maxdate
+                    //columns[3] = coverage
+                    inventory[element][columns[0]] = {
+                        min : columns[1],
+                        max : columns[2],
+                        cov : columns[3]
+                    };
+                }
+            }
+        }
+        
+        
+        function parseStations(data) {
+            var lines = data.split("\n"),
+                i,
+                columns;
+            stations = {};
+            stationIds = [];
+            for (i=0; i<lines.length; ++i) {
+                if (/\|/.test(lines[i])) { // skip line unless it contains a |
+                    columns = lines[i].split(/\s*\|\s*/);
+                    stations[columns[0]] = {
+                        id   : columns[0],
+                        lat  : columns[1],
+                        lon  : columns[2],
+                        elev : columns[3],
+                        //state : columns[4],
+                        name : columns[5]
+                    };
+                    stationIds.push(columns[0]);
+                }
+            }
+        }
+
 
         /*
         layer.addListener("transparency", function (e) {
@@ -148,6 +249,34 @@
     };
 
 
+    function showStations(stations) {
+        console.log('showing ' + stations.length + ' stations');
+        if (stationsLayer !== undefined) {
+            ce.map.removeLayer(stationsLayer);
+        }
+        stationsLayer = new OpenLayers.Layer.Markers("stations",
+                                                     {
+                                                         projection  : new OpenLayers.Projection("EPSG:900913"), 
+                                                         units       : "m"
+                                                     }
+                                                    );
+        for (var i=0; i<stations.length; ++i) {
+            var station = stations[i];
+            var coords = new OpenLayers.LonLat(station.lon, station.lat);
+			coords = coords.transform(new OpenLayers.Projection("EPSG:4326"),
+                                      new OpenLayers.Projection("EPSG:900913"));
+            var marker = new OpenLayers.Marker(coords,stationMarkerIcon.clone());
+            (function () {
+                var name = station.name;
+                marker.events.register('mouseover', marker, function(evt) {
+                    //console.log(name);
+                });
+            }());
+            stationsLayer.addMarker(marker);
+        }
+        ce.map.addLayers([stationsLayer]);
+    }
+
     var initOpenLayers = function(baseLayerInfo) {
 
         var layer = new OpenLayers.Layer.ArcGISCache("AGSCache", baseLayerURL, {
@@ -177,33 +306,7 @@
         ce.map.addLayers([layer]);
         ce.map.setLayerIndex(layer, 0);
 
-        var stationsLayer = new OpenLayers.Layer.Markers("stations",
-                                                         {
-                                                             projection  : new OpenLayers.Projection("EPSG:900913"), 
-                                                             units       : "m"
-                                                         }
-                                                        );
-
-
-        var size = new OpenLayers.Size(21,25);
-        var offset = new OpenLayers.Pixel(-(size.w)/2, -size.h);
-        var icon = new OpenLayers.Icon('http://www.openlayers.org/dev/img/marker.png', size, offset);
-
-        for (var i=0; i<ce.stations.length; ++i) {
-            var station = ce.stations[i];
-            var coords = new OpenLayers.LonLat(station.longitude, station.latitude);
-			coords = coords.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
-            var marker = new OpenLayers.Marker(coords,icon.clone());
-            (function () {
-                var descr = station.description;
-                marker.events.register('mouseover', marker, function(evt) {
-                    //console.log(descr);
-                });
-            }());
-            stationsLayer.addMarker(marker);
-        }
-
-        ce.map.addLayers([stationsLayer]);
+        showStations(ce.stations);
 
         ce.map.zoomToExtent(maxExtentBounds, true);
 
