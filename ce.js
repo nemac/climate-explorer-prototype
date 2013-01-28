@@ -342,10 +342,32 @@
                  dataType : "text",
                  success : function (mugl_tpl) {
                      var muglString = Mustache.render(mugl_tpl, {
-                         mindate : minyear,
+                         mindate : parseInt(maxyear,10)-1,
                          maxdate : maxyear,
                          values  : inv_to_values(data)
                      });
+                     var messageId          = "multigraph-message-" + id;
+                     var multigraphDialogId = "multigraph-dialog-" + id;
+                     var multigraphId       = "multigraph-" + id;
+                     $(Mustache.render('<div id={{{multigraphDialogId}}}></div>',
+                                       {
+                                           multigraphDialogId : multigraphDialogId
+                                       })).dialog({ zIndex:10050, 
+                                                    position:"left",
+                                                    width: 650,
+                                                    autoOpen: true,
+                                                    hide:"explode"
+                                                  });
+                     $('#'+multigraphDialogId).append($(Mustache.render('<div id="{{{messageId}}}">Loading...</div>',
+                                       {
+                                           messageId : messageId
+                                       })));
+                     $('#'+multigraphDialogId).append($(Mustache.render('<div id="{{{multigraphId}}}" style="width: 600px; height: 300px;"></div>',
+                                                                        {
+                                                                            multigraphId : multigraphId
+                                                                        })));
+
+/*
                      ce.map.addPopup(new OpenLayers.Popup.FramedCloud(
                                          "ceMultigraphPopup", 
                                          coords,
@@ -353,13 +375,14 @@
                                          '<div id="ceMultigraphMessage">Loading...</div><div id="ceMultigraph" style="width: 600px; height: 300px;"></div>',
                                          null,
                                          true));
-                     var promise = window.multigraph.jQuery('#ceMultigraph').multigraph({
+*/
+                     var promise = window.multigraph.jQuery('#'+multigraphId).multigraph({
                          //NOTE: coords.lon and coords.lat on the next line are really x,y coords in EPSG:900913, not lon/lat:
                          'muglString'   : muglString
                      });
-                     window.multigraph.jQuery('#ceMultigraph').multigraph('done', function() {
-                         $('#ceMultigraphMessage').empty();
-                         $('#ceMultigraphMessage').text(name);
+                     window.multigraph.jQuery('#'+multigraphId).multigraph('done', function() {
+                         $('#'+messageId).empty();
+                         $('#'+messageId).text(name);
                      });
                  },
                  error: function(jqXHR, textStatus, errorThrown) {
