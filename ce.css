@@ -62,7 +62,7 @@
 #timerange-slider, #timerange-text {
    margin-top: 10px;
    margin-left: 30px;
-   width: 370px;
+   width: 250px;
 }
 
 #coverage-slider-container {
@@ -74,18 +74,18 @@
 #coverage-slider, #coverage-text {
    margin-top: 10px;
    margin-left: 30px;
-   width: 350px;
+   width: 250px;
 }
 #coverage-text {
    display: inline;
 }
 
 #timerange-min-text {
-  margin-left: 20px;
+  margin-left: 0px;
 }
 
 #timerange-max-text {
-  margin-left: 300px;
+  margin-left: 180px;
 }
 
 .ui-slider .ui-slider-handle {

@@ -307,7 +307,7 @@
         for (var i=0; i<stations.length; ++i) {
             var station = stations[i];
             var coords = new OpenLayers.LonLat(station.lon, station.lat);
-			coords = coords.transform(new OpenLayers.Projection("EPSG:4326"),
+            coords = coords.transform(new OpenLayers.Projection("EPSG:4326"),
                                       new OpenLayers.Projection("EPSG:900913"));
             var marker = new OpenLayers.Marker(coords,stationMarkerIcon.clone());
             (function () {
@@ -317,7 +317,7 @@
                 marker.events.register('mouseover', marker, function(evt) {
                     //console.log(name);
                 });
-                marker.events.register('click', marker, function(evt) {
+                var clickHandler = function(evt) {
                     $('#message')[0].innerHTML = 'You clicked on: ' + id;
                     $.ajax({
                         url : 'http://dev.nemac.org/~mbp/ghcn-mirror/datfiles/TMAX/' + id + '.dat',
@@ -330,7 +330,9 @@
                         }
                     });
                     //console.log(name);
-                });
+                };
+                marker.events.register('click', marker, clickHandler);
+                marker.events.register('touchstart', marker, clickHandler);
             }());
             stationsLayer.addMarker(marker);
         }
@@ -338,6 +340,27 @@
     }
 
     function displayGraph(data, coords, name, id, minyear, maxyear) {
+        var messageId          = "multigraph-message-" + id;
+        var multigraphDialogId = "multigraph-dialog-" + id;
+        var multigraphId       = "multigraph-" + id;
+        $(Mustache.render('<div id={{{multigraphDialogId}}}></div>',
+                          {
+                              multigraphDialogId : multigraphDialogId
+                          })).dialog({ zIndex:10050, 
+                                       position:"left",
+                                       width: 650,
+                                       title: name,
+                                       autoOpen: true,
+                                       hide:"explode"
+                                     });
+        $('#'+multigraphDialogId).append($(Mustache.render('<div id="{{{messageId}}}">Loading...</div>',
+                                                           {
+                                                               messageId : messageId
+                                                           })));
+        $('#'+multigraphDialogId).append($(Mustache.render('<div id="{{{multigraphId}}}" style="width: 600px; height: 300px;"></div>',
+                                                           {
+                                                               multigraphId : multigraphId
+                                                           })));
         $.ajax({ url : 'mugl.tpl.xml',
                  dataType : "text",
                  success : function (mugl_tpl) {
@@ -346,43 +369,14 @@
                          maxdate : maxyear,
                          values  : inv_to_values(data)
                      });
-                     var messageId          = "multigraph-message-" + id;
-                     var multigraphDialogId = "multigraph-dialog-" + id;
-                     var multigraphId       = "multigraph-" + id;
-                     $(Mustache.render('<div id={{{multigraphDialogId}}}></div>',
-                                       {
-                                           multigraphDialogId : multigraphDialogId
-                                       })).dialog({ zIndex:10050, 
-                                                    position:"left",
-                                                    width: 650,
-                                                    autoOpen: true,
-                                                    hide:"explode"
-                                                  });
-                     $('#'+multigraphDialogId).append($(Mustache.render('<div id="{{{messageId}}}">Loading...</div>',
-                                       {
-                                           messageId : messageId
-                                       })));
-                     $('#'+multigraphDialogId).append($(Mustache.render('<div id="{{{multigraphId}}}" style="width: 600px; height: 300px;"></div>',
-                                                                        {
-                                                                            multigraphId : multigraphId
-                                                                        })));
-
-/*
-                     ce.map.addPopup(new OpenLayers.Popup.FramedCloud(
-                                         "ceMultigraphPopup", 
-                                         coords,
-                                         null,
-                                         '<div id="ceMultigraphMessage">Loading...</div><div id="ceMultigraph" style="width: 600px; height: 300px;"></div>',
-                                         null,
-                                         true));
-*/
+                     $('#'+messageId).remove();
                      var promise = window.multigraph.jQuery('#'+multigraphId).multigraph({
                          //NOTE: coords.lon and coords.lat on the next line are really x,y coords in EPSG:900913, not lon/lat:
                          'muglString'   : muglString
                      });
                      window.multigraph.jQuery('#'+multigraphId).multigraph('done', function() {
-                         $('#'+messageId).empty();
-                         $('#'+messageId).text(name);
+                         //$('#'+messageId).empty();
+                         //$('#'+messageId).text(name);
                      });
                  },
                  error: function(jqXHR, textStatus, errorThrown) {
