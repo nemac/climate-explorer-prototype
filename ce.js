@@ -18,7 +18,7 @@
 
     ce.init = function() {
 
-
+/*
 
  // Variables
     var objMain = $('#main');
@@ -50,13 +50,21 @@
             ce.map.updateSize();
         }
     }).css('height', objSeparator.parent().outerHeight() + 'px');
- 
-    // Load preference
-/*
-    if ( $.cookie('sidebar-pref2') == null ){
-        objMain.removeClass('use-sidebar');
-    }
-*/
+ */
+
+
+        $('.sidebar-closer').click(function() {
+            console.log($('#sidebar').css('width'));
+            $('#sidebar').animate({ left: '-=300px' }, 400, function() {
+                $('#sidebar').css({'display' : 'none'});
+            });
+        });
+
+        $('.sidebar-opener').click(function() {
+            $('#sidebar').css({'display' : 'block'});
+            $('#sidebar').animate({ left: '+=300px' });
+        });
+
 
         $('#coverage-slider').slider({
             min    : 0,
@@ -241,24 +249,6 @@
                 }
             }
         }
-
-
-        /*
-        layer.addListener("transparency", function (e) {
-            $html.find('.transparency-slider').slider("value", e.value);
-        });
-        $html.find('input.transparency-text').change(function() {
-            var newValueFloat = parseFloat($(this).val());
-            if (isNaN(newValueFloat) || newValueFloat < 0 || newValueFloat > 100) {
-                $(this).val(layer.transparency);
-                return;
-            }
-            layer.setTransparency($(this).val());
-        });
-        layer.addListener("transparency", function (e) {
-            $html.find('input.transparency-text').val(e.value);
-        });
-        */
 
             $.ajax({
                 url: baseLayerURL + '?f=json&pretty=true',

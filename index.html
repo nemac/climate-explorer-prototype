@@ -9,17 +9,17 @@
     <script type="text/javascript" src="libs/multigraph/multigraph-min-4.0.js"></script>
     <!--
         NOTE:
-            Multigraph contains a copy of jQuery 1.8.  To make use of that copy of jQuery,
-            instead of loading our own separate copy, replace the line
-                <script type="text/javascript" src="libs/jquery17/jquery-1.7.2.js"></script>
-            below with the following instead:
-                <script type="text/javascript">$ = window.multigraph.jQuery;</script>
-            However, at the moment, doing this turns up errors in the jquery-ui code
-            that we are loading below.  We need to resolve those errors before we can
-            do this.  Maybe upgrade to a later version of jquery-ui???
+        Multigraph contains a copy of jQuery 1.8.  To make use of that copy of jQuery,
+        instead of loading our own separate copy, replace the line
+        <script type="text/javascript" src="libs/jquery17/jquery-1.7.2.js"></script>
+        below with the following instead:
+        <script type="text/javascript">$ = window.multigraph.jQuery;</script>
+        However, at the moment, doing this turns up errors in the jquery-ui code
+        that we are loading below.  We need to resolve those errors before we can
+        do this.  Maybe upgrade to a later version of jquery-ui???
 
-            See https://github.com/nemac/ol-fcav/issues/30
-    -->
+        See https://github.com/nemac/ol-fcav/issues/30
+        -->
     <script type="text/javascript" src="libs/jquery17/jquery-1.7.2.js"></script>
     <script type="text/javascript" src="libs/OpenLayers212/lib/OpenLayers.js"></script>
     <script src="libs/OpenLayers212/lib/OpenLayers/Control/ScaleBar.js"></script>
@@ -43,20 +43,27 @@
 
     <script type="text/javascript">
       $('document').ready(function() {
-          ce.init();
+      ce.init();
       });
     </script>
 
     <!--[if IE]>
         <link rel="stylesheet" type="text/css" href="ie.css" />
-    <![endif]-->
+        <![endif]-->
 
   </head>
 
   <body class="nonselectable">
 
-    <div class="use-sidebar sidebar-at-left" id="main">
+    <!--
+        <div class="use-sidebar sidebar-at-left" id="main">
+    -->
+
+    <div id="wrapper">
+      <div id="map"></div>
+      <div class="sidebar-opener"><div class="sidebar-opener-image"></div></div>
       <div id="sidebar">
+        <div class="sidebar-closer"></div>
         Choose stations
         <div id="element-checks-container">
           having data for all of these elements
@@ -65,12 +72,13 @@
 
         <div id="coverage-slider-container">
           for
-          <div><div id="coverage-slider"></div><div id="coverage-text"></div>%</div>
-          of days
+          <div id="coverage-slider"></div>
+          <div id="coverage-text"></div>
+          %
         </div>
 
         <div id="timerange-slider-container">
-          during this time period:
+          of this time period:
           <div id="timerange-slider"></div>
           <div id="timerange-text"><span id="timerange-min-text"></span><span id="timerange-max-text"></span></div>
         </div>
@@ -84,11 +92,14 @@
         </div>
 
       </div>
-      <a href="#" id="separator"></a>
-      <div id="content">
-        <div id="map"></div>
-      </div>
-      <div class="clearer">&nbsp;</div>
+      <!--
+          <a href="#" id="separator"></a>
+          <div id="content">
+            -->
+      <!--
+          </div>
+    <div class="clearer">&nbsp;</div>
+    -->
     </div>
 
   </body>
