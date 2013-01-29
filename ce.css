@@ -56,7 +56,6 @@ body {
 
 #content,#sidebar {
     height: 100%;
-    border: 1px solid;
 }
 
 #wrapper {
@@ -71,6 +70,10 @@ body {
   left: 0;
   top: 0;
   background-color: #EEF;
+  border-left: 0;
+  border-right: 1px solid #aaa;
+  border-bottom: 0;
+  border-top: 0;
 }
 
 .sidebar-closer {
@@ -93,7 +96,10 @@ body {
   width: 20px;
   height: 20px;
   background-color: #EEF;
-  border: 1px solid #000;
+  border-left: 0;
+  border-right: 1px solid #aaa;
+  border-bottom: 1px solid #aaa;
+  border-top: 0;
 }
 
 .sidebar-opener-image {
