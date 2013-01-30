@@ -65,6 +65,7 @@ body {
 }
 
 #sidebar {
+  opacity: 0.95;
   position: absolute;
   width: 300px;
   left: 0;

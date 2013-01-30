@@ -1,0 +1,12 @@
+<mugl>
+  <background color="0xffffff"/>
+    <window margin="0" padding="5" border="5" bordercolor="0x000000"/>
+    <plotarea margintop="10" marginleft="38" marginbottom="35" marginright="35"/>
+    <horizontalaxis id="time" type="datetime" min="{{{mindate}}}" max="{{{maxdate}}}" length="1" base="-1,-1" anchor="-1" tickmin="-5" tickmax="5">
+      <labels format="%Y" start="0" spacing="1000Y 500Y 200Y 100Y 50Y 20Y 10Y 5Y 2Y 1Y" anchor="0,0" position="0,-10"/>
+      <title>Year</title>
+    </horizontalaxis>
+{{{verticalaxes}}}
+{{{plots}}}
+{{{datas}}}
+</mugl>
