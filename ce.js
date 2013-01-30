@@ -14,47 +14,68 @@
 
     var size = new OpenLayers.Size(21,25);
     var offset = new OpenLayers.Pixel(-(size.w)/2, -size.h);
-    var stationMarkerIcon = new OpenLayers.Icon('http://www.openlayers.org/dev/img/marker.png', size, offset);
+    var stationMarkerIcon = new OpenLayers.Icon('icons/marker.png', size, offset);
+
+    ce.elements = [
+        { title : 'Snow',                id : 'SNOW', ghcn_element_ids : ['SNOW'] },
+        { title : 'Precipitation',       id : 'PRCP', ghcn_element_ids : ['PRCP'] },
+        { title : 'Temperature Max/Min', id : 'TEMP', ghcn_element_ids : ['TMAX', 'TMIN'] }
+    ];
+
+    ce.checked_elements = [];
+    ce.chcked_ghcn_element_ids = [];
+
+    function DataFetcher(station_id, ghcn_element_ids) {
+        //
+        // Fetch all the data for a given station and a given list of ghcn elements.  Provides a `done()` method
+        // that can be passed a callback function that will be called when all the requested data is available.
+        // Data will be available in the `data` property, which is an object whose keys are the requested element ids.
+        // 
+        // For example:
+        // 
+        //     var fetcher = new DataFetcher('USC00234323', ['TMAX','TMIN','PRCP'])
+        //     fetcher.done(function() {
+        //        // fetcher.data['TMAX'], fetcher.data['TMIN'], fetcher.data['PRCP']
+        //        // are available here
+        //     });
+        //
+        var that = this;
+        
+        that.station_id       = station_id;
+        that.ghcn_element_ids = [];
+        that.data             = {};
+        that.deferred         = $.Deferred();
+        that.promise          = that.deferred.promise();
+        that.ajaxPromises     = [];
+
+        $.each(ghcn_element_ids, function (i, ghcn_element_id) {
+            that.ajaxPromises.push(
+                $.ajax({
+                    url : 'http://dev.nemac.org/~mbp/ghcn-mirror/datfiles/'+ghcn_element_id+'/' + station_id + '.dat',
+                    dataType: "text",
+                    success:  function (data) {
+                        that.data[ghcn_element_id] = data;
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        alert(textStatus);
+                    }
+                })
+            );
+        });
+
+        $.when.apply(that, that.ajaxPromises).then(function() {
+            that.deferred.resolve();
+        });
+
+        that.done = function (callback) {
+            that.promise.done(callback);
+        };
+
+    }
 
     ce.init = function() {
 
-/*
-
- // Variables
-    var objMain = $('#main');
- 
-    // Show sidebar
-    function showSidebar(){
-        objMain.addClass('use-sidebar');
-        //$.cookie('sidebar-pref2', 'use-sidebar', { expires: 30 });
-    }
- 
-    // Hide sidebar
-    function hideSidebar(){
-        objMain.removeClass('use-sidebar');
-        //$.cookie('sidebar-pref2', null, { expires: 30 });
-    }
- 
-    // Sidebar separator
-    var objSeparator = $('#separator');
- 
-    objSeparator.click(function(e){
-        e.preventDefault();
-        if ( objMain.hasClass('use-sidebar') ){
-            hideSidebar();
-        }
-        else {
-            showSidebar();
-        }
-        if (ce.map !== undefined) {
-            ce.map.updateSize();
-        }
-    }).css('height', objSeparator.parent().outerHeight() + 'px');
- */
-
-
         $('.sidebar-closer').click(function() {
-            console.log($('#sidebar').css('width'));
             $('#sidebar').animate({ left: '-=300px' }, 400, function() {
                 $('#sidebar').css({'display' : 'none'});
             });
@@ -84,7 +105,7 @@
             min    : 1750,
             max    : 2013,
             step   : 1,
-            values : [1950, 2012],
+            values : [1900, 2012],
             slide  : function(event, ui) {
                 $('#timerange-min-text')[0].innerHTML = ui.values[0];
                 $('#timerange-max-text')[0].innerHTML = ui.values[1];
@@ -97,37 +118,38 @@
         $('#timerange-min-text')[0].innerHTML = values[0];
         $('#timerange-max-text')[0].innerHTML = values[1];
 
-        var elements = ['SNOW',
-                        'PRCP',
-                        'TMAX',
-                        'TMIN'];
         var i;
-        for (i=0; i<elements.length; ++i) {
-            var element = elements[i];
+        for (i=0; i<ce.elements.length; ++i) {
+            var element = ce.elements[i];
             $('#element-checkboxes').append(
                 $(Mustache.render(''
                                   + '<div class="element-checkbox">'
                                   +   '<input type="checkbox" id="checkbox-{{{id}}}"></input>'
-                                  +   '<label for="{{{id}}}">{{{name}}}</label>'
+                                  +   '<label for="{{{id}}}">{{{title}}}</label>'
                                   + '</div>',
                                   {
-                                      id : element,
-                                      name : element
+                                      id : element.id,
+                                      title : element.title
                                   }))
             );
             (function(element) {
-                $('#checkbox-'+element).click(function() {
+                $('#checkbox-'+element.id).click(function() {
                     updateStations();
                 });
             }(element));
         }
 
         function updateStations() {
-            var i, checked_elements = [];
-            for (i=0; i<elements.length; ++i) {
-                var element = elements[i];
-                if ($('#checkbox-'+element).attr('checked')) {
-                    checked_elements.push(element);
+            ce.checked_elements = [];
+            ce.checked_ghcn_element_ids = [];
+            var i, j;
+            for (i=0; i<ce.elements.length; ++i) {
+                var element = ce.elements[i];
+                if ($('#checkbox-'+element.id).attr('checked')) {
+                    ce.checked_elements.push(element);
+                    $.each(element.ghcn_element_ids, function(k,id) {
+                        ce.checked_ghcn_element_ids.push(id);
+                    });
                 }
             }
             var values = $('#timerange-slider').slider('values');
@@ -136,24 +158,29 @@
             var maxyear = values[1];
 
             var inventoryPromises = [];
-            for (i=0; i<checked_elements.length; ++i) {
-                inventoryPromises.push(insureInventory(checked_elements[i]));
+            for (i=0; i<ce.checked_elements.length; ++i) {
+                for (j=0; j<ce.checked_elements[i].ghcn_element_ids.length; ++j) {
+                    inventoryPromises.push(insureInventory(ce.checked_elements[i].ghcn_element_ids[j]));
+                }
             }
 
             $.when.apply(this, inventoryPromises).then(function() {
-                var stationsToShow = [], i, id, station, j, element, station_ok, coverage_threshold;
-                if (checked_elements.length > 0) {
+                var stationsToShow = [], i, id, station, j, k, element, station_ok, coverage_threshold,
+                    ghcn_element_id;
+                if (ce.checked_elements.length > 0) {
                     coverage_threshold = $('#coverage-slider').slider('value') / 100.0;
                     for (i=0; i<stationIds.length; ++i) {
                         id = stationIds[i];
                         station = stations[id];
                         station_ok = true;
-                        for (j=0; j<checked_elements.length && station_ok; ++j) {
-                            element = checked_elements[j];
-                            station_ok = ((inventory[element][id] !== undefined)
-                                          && (inventory[element][id].min <= minyear)
-                                          && (inventory[element][id].max >= maxyear)
-                                          && (inventory[element][id].cov >= coverage_threshold));
+                        for (j=0; j<ce.checked_elements.length && station_ok; ++j) {
+                            for (k=0; k<ce.checked_elements[j].ghcn_element_ids.length && station_ok; ++k) {
+                                ghcn_element_id = ce.checked_elements[j].ghcn_element_ids[j];
+                                station_ok = ((inventory[ghcn_element_id][id] !== undefined)
+                                              && (inventory[ghcn_element_id][id].min <= minyear)
+                                              && (inventory[ghcn_element_id][id].max >= maxyear)
+                                              && (inventory[ghcn_element_id][id].cov >= coverage_threshold));
+                            }
                         }
                         if (station_ok) {
                             stationsToShow.push(station);
@@ -166,7 +193,9 @@
                     Mustache.render('Showing {{{n}}} stations with {{{elements}}} from {{{minyear}}} to {{{maxyear}}}.',
                                     {
                                         n        : stationsToShow.length,
-                                        elements : checked_elements.join(','),
+                                        elements : $.map(ce.checked_elements, function (e) {
+                                                      return e.ghcn_element_ids.join(',');
+                                                   }).join(','),
                                         minyear  : minyear,
                                         maxyear  : maxyear
                                         });
@@ -187,17 +216,17 @@
                     console.log(err);
                 }});
 
-        function insureInventory(element) {
+        function insureInventory(ghcn_element_id) {
             var deferred;
-            if (inventory[element]) {
+            if (inventory[ghcn_element_id]) {
                 deferred = $.Deferred();
                 deferred.resolve();
                 return deferred.promise();
             } else {
-                return $.ajax({url : 'inventory/' + element + '.inv',
+                return $.ajax({url : 'inventory/' + ghcn_element_id + '.inv',
                                dataType : "text",
                                success: function (data) {
-                                   loadInventory(element, data);
+                                   loadInventory(ghcn_element_id, data);
                                },
                                error: function (err) {
                                    console.log('ERROR');
@@ -206,11 +235,11 @@
             }
         }
 
-        function loadInventory(element, data) {
+        function loadInventory(ghcn_element_id, data) {
             var lines = data.split("\n"),
                 i,
                 columns;
-            inventory[element] = {};
+            inventory[ghcn_element_id] = {};
             for (i=0; i<lines.length; ++i) {
                 if (/,/.test(lines[i])) { // skip line unless it contains a comma
                     columns = lines[i].split(/\s*,\s*/);
@@ -218,7 +247,7 @@
                     //columns[1] = mindate
                     //columns[2] = maxdate
                     //columns[3] = coverage
-                    inventory[element][columns[0]] = {
+                    inventory[ghcn_element_id][columns[0]] = {
                         min : columns[1],
                         max : columns[2],
                         cov : parseFloat(columns[3])
@@ -284,7 +313,6 @@
 
 
     function showStations(stations, minyear, maxyear) {
-        console.log('showing ' + stations.length + ' stations');
         if (stationsLayer !== undefined) {
             ce.map.removeLayer(stationsLayer);
         }
@@ -309,17 +337,12 @@
                 });
                 var clickHandler = function(evt) {
                     $('#message')[0].innerHTML = 'You clicked on: ' + id;
-                    $.ajax({
-                        url : 'http://dev.nemac.org/~mbp/ghcn-mirror/datfiles/TMAX/' + id + '.dat',
-                        dataType: "text",
-                        success:  function (data) {
-                            displayGraph(data, markerCoords, name, id, minyear, maxyear);
-                        },
-                        error: function(jqXHR, textStatus, errorThrown) {
-                            alert(textStatus);
-                        }
+console.log('fetching');
+console.log(ce.checked_ghcn_element_ids);
+                    var fetcher = new DataFetcher(id, ce.checked_ghcn_element_ids);
+                    fetcher.done(function() {
+                        displayGraph(fetcher.data['TMAX'], markerCoords, name, id, minyear, maxyear);
                     });
-                    //console.log(name);
                 };
                 marker.events.register('click', marker, clickHandler);
                 marker.events.register('touchstart', marker, clickHandler);
