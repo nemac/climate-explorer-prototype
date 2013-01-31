@@ -23,9 +23,9 @@
     ];
 
     ce.checked_elements = [];
-    ce.chcked_ghcn_element_ids = [];
+    ce.checked_ghcn_element_ids = [];
 
-    function DataFetcher(station_id, ghcn_element_ids) {
+    var DataFetcher = function(station_id, ghcn_element_ids) {
         //
         // Fetch all the data for a given station and a given list of ghcn elements.  Provides a `done()` method
         // that can be passed a callback function that will be called when all the requested data is available.
@@ -71,7 +71,8 @@
             that.promise.done(callback);
         };
 
-    }
+    };
+    ce.DataFetcher = DataFetcher;
 
     ce.init = function() {
 
@@ -337,12 +338,16 @@
                 });
                 var clickHandler = function(evt) {
                     $('#message')[0].innerHTML = 'You clicked on: ' + id;
-console.log('fetching');
-console.log(ce.checked_ghcn_element_ids);
+
+                    displayGraph(markerCoords, name, id, minyear, maxyear);
+
+
+/*
                     var fetcher = new DataFetcher(id, ce.checked_ghcn_element_ids);
                     fetcher.done(function() {
                         displayGraph(fetcher.data['TMAX'], markerCoords, name, id, minyear, maxyear);
                     });
+*/
                 };
                 marker.events.register('click', marker, clickHandler);
                 marker.events.register('touchstart', marker, clickHandler);
@@ -352,6 +357,43 @@ console.log(ce.checked_ghcn_element_ids);
         ce.map.addLayers([stationsLayer]);
     }
 
+    function displayGraph(coords, name, stationid, minyear, maxyear) {
+        var messageId          = "multigraph-message-" + stationid;
+        var multigraphDialogId = "multigraph-dialog-" + stationid;
+        var multigraphId       = "multigraph-" + stationid;
+        $(Mustache.render('<div id={{{multigraphDialogId}}}></div>', {
+            multigraphDialogId : multigraphDialogId
+        })).dialog({ zIndex:10050, 
+                     position:"left",
+                     width: 750,
+                     title: name,
+                     autoOpen: true,
+                     hide:"explode"
+                   });
+        $('#'+multigraphDialogId).append($(Mustache.render('<div id="{{{messageId}}}">Loading...</div>',
+                                                           {
+                                                               messageId : messageId
+                                                           })));
+        $('#'+multigraphDialogId).append($(Mustache.render('<div id="{{{multigraphId}}}" style="width: 750px; height: 300px;"></div>',
+                                                           {
+                                                               multigraphId : multigraphId
+                                                           })));
+
+        var dataFetcher = new ce.DataFetcher(stationid, ce.checked_ghcn_element_ids);
+        dataFetcher.done(function() {
+            graph.all_tpl_promises.done(function() {
+                var muglString = graph.buildMugl(stationid, parseInt(maxyear)-1, maxyear, ce.checked_elements, dataFetcher.data);
+                $('#'+messageId).remove();
+                window.multigraph.jQuery('#'+multigraphId).multigraph({
+                    'muglString'   : muglString
+                });
+
+            });
+        });
+
+    }
+
+/*
     function displayGraph(data, coords, name, id, minyear, maxyear) {
         var messageId          = "multigraph-message-" + id;
         var multigraphDialogId = "multigraph-dialog-" + id;
@@ -397,7 +439,7 @@ console.log(ce.checked_ghcn_element_ids);
                  }
                });
     }
-
+*/
     var initOpenLayers = function(baseLayerInfo) {
 
         var layer = new OpenLayers.Layer.ArcGISCache("AGSCache", baseLayerURL, {

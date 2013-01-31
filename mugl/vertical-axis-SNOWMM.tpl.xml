@@ -1,4 +1,0 @@
-    <verticalaxis   id="snowmm"  min="0" max="100" length="1" position="{{{position,0}}}">
-      <labels format="%1d" start="0" spacing="100 50 20 10 5 2 1" anchor="0,0" position="-30,0" angle="0" />
-      <title angle="90">Snow (mm)</title>
-    </verticalaxis>

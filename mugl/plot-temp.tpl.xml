@@ -1,5 +1,4 @@
   <plot>
-    <legend label="Actual Temperature Range"/>
     <horizontalaxis ref="time">
       <variable ref="temp-time"/>
     </horizontalaxis>
