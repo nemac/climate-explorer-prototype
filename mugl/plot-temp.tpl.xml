@@ -1,4 +1,5 @@
   <plot>
+    <legend label="Daily Max/Min Temperature"/>
     <horizontalaxis ref="time">
       <variable ref="temp-time"/>
     </horizontalaxis>

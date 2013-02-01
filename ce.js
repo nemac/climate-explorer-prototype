@@ -176,7 +176,7 @@
                         station_ok = true;
                         for (j=0; j<ce.checked_elements.length && station_ok; ++j) {
                             for (k=0; k<ce.checked_elements[j].ghcn_element_ids.length && station_ok; ++k) {
-                                ghcn_element_id = ce.checked_elements[j].ghcn_element_ids[j];
+                                ghcn_element_id = ce.checked_elements[j].ghcn_element_ids[k];
                                 station_ok = ((inventory[ghcn_element_id][id] !== undefined)
                                               && (inventory[ghcn_element_id][id].min <= minyear)
                                               && (inventory[ghcn_element_id][id].max >= maxyear)

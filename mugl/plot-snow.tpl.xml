@@ -1,4 +1,5 @@
   <plot>
+    <legend label="Snowfall"/>
     <horizontalaxis ref="time">
       <variable ref="snow-time"/>
     </horizontalaxis>

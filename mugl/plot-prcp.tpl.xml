@@ -1,4 +1,5 @@
   <plot>
+    <legend label="Precipitation"/>
     <horizontalaxis ref="time">
       <variable ref="prcp-time"/>
     </horizontalaxis>
