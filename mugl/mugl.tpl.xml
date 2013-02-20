@@ -1,6 +1,6 @@
 <mugl>
   <background color="0xffffff"/>
-  <legend visible="true" border="0" base="0,1" anchor="0,1" rows="1" opacity="0.2">
+  <legend visible="false" border="0" base="0,1" anchor="0,1" rows="1" opacity="0.2">
     <icon border="0"/>
   </legend>
   <window margin="0" padding="5" border="1" bordercolor="0x000000"/>

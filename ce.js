@@ -17,9 +17,12 @@
     var stationMarkerIcon = new OpenLayers.Icon('icons/marker.png', size, offset);
 
     ce.elements = [
-        { title : 'Snow',                id : 'SNOW', ghcn_element_ids : ['SNOW'] },
-        { title : 'Precipitation',       id : 'PRCP', ghcn_element_ids : ['PRCP'] },
-        { title : 'Temperature Max/Min', id : 'TEMP', ghcn_element_ids : ['TMAX', 'TMIN'] }
+        { title : 'Temperature Max/Min',         id : 'TEMP',            ghcn_element_ids : ['TMAX', 'TMIN'] },
+        { title : 'Normal Temperature Max/Min',  id : 'NORMAL_TEMP',     ghcn_element_ids : ['NORMAL_TMAX', 'NORMAL_TMIN'] },
+        { title : 'YTD Precipitation',           id : 'YTD_PRCP',        ghcn_element_ids : ['YTD_PRCP'] },
+        { title : 'Normal Precipitation',        id : 'NORMAL_YTD_PRCP', ghcn_element_ids : ['NORMAL_YTD_PRCP'] },
+        { title : 'Precipitation',               id : 'PRCP',            ghcn_element_ids : ['PRCP'] },
+        { title : 'Snow',                        id : 'SNOW',            ghcn_element_ids : ['SNOW'] }
     ];
 
     ce.checked_elements = [];
@@ -196,7 +199,7 @@
                                         n        : stationsToShow.length,
                                         elements : $.map(ce.checked_elements, function (e) {
                                                       return e.ghcn_element_ids.join(',');
-                                                   }).join(','),
+                                                   }).join(', '),
                                         minyear  : minyear,
                                         maxyear  : maxyear
                                         });

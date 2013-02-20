@@ -4,17 +4,24 @@
     var ce = window.ce;
     var graph = {};
 
-    var tpls = [
-        { key : 'data-temp',               url : 'mugl/data-temp.tpl.xml' },
-        { key : 'data-prcp',               url : 'mugl/data-prcp.tpl.xml' },
-        { key : 'data-snow',               url : 'mugl/data-snow.tpl.xml' },
-        { key : 'mugl',                    url : 'mugl/mugl.tpl.xml' },
-        { key : 'plot-temp',               url : 'mugl/plot-temp.tpl.xml' },
-        { key : 'plot-prcp',               url : 'mugl/plot-prcp.tpl.xml' },
-        { key : 'plot-snow',               url : 'mugl/plot-snow.tpl.xml' },
-        { key : 'vertical-axis-prcpmm',    url : 'mugl/vertical-axis-prcpmm.tpl.xml' },
-        { key : 'vertical-axis-snowmm',    url : 'mugl/vertical-axis-snowmm.tpl.xml' },
-        { key : 'vertical-axis-tempc',     url : 'mugl/vertical-axis-tempc.tpl.xml' }
+    var tpls = [    
+        { key : 'data-temp',                   url : 'mugl/data-temp.tpl.xml' },
+        { key : 'data-normal-temp',            url : 'mugl/data-normal-temp.tpl.xml' },
+        { key : 'data-prcp',                   url : 'mugl/data-prcp.tpl.xml' },
+        { key : 'data-ytd-prcp',               url : 'mugl/data-ytd-prcp.tpl.xml' },
+        { key : 'data-normal-ytd-prcp',        url : 'mugl/data-normal-ytd-prcp.tpl.xml' },
+        { key : 'data-snow',                   url : 'mugl/data-snow.tpl.xml' },
+        { key : 'mugl',                        url : 'mugl/mugl.tpl.xml' },
+        { key : 'plot-temp',                   url : 'mugl/plot-temp.tpl.xml' },
+        { key : 'plot-normal-temp',            url : 'mugl/plot-normal-temp.tpl.xml' },
+        { key : 'plot-prcp',                   url : 'mugl/plot-prcp.tpl.xml' },
+        { key : 'plot-ytd-prcp',               url : 'mugl/plot-ytd-prcp.tpl.xml' },
+        { key : 'plot-normal-ytd-prcp',        url : 'mugl/plot-normal-ytd-prcp.tpl.xml' },
+        { key : 'plot-snow',                   url : 'mugl/plot-snow.tpl.xml' },
+        { key : 'vertical-axis-prcpmm',        url : 'mugl/vertical-axis-prcpmm.tpl.xml' },
+        { key : 'vertical-axis-ytd-prcpmm',    url : 'mugl/vertical-axis-ytd-prcpmm.tpl.xml' },
+        { key : 'vertical-axis-snowmm',        url : 'mugl/vertical-axis-snowmm.tpl.xml' },
+        { key : 'vertical-axis-tempc',         url : 'mugl/vertical-axis-tempc.tpl.xml' }
     ];
 
     var tpl_promises = [];
@@ -195,10 +202,21 @@
         return sprintf("%.1f", v);
     }
 
+    function normaltemptransform(x) {
+        var f = parseFloat(x);
+        var c = (f-32.0)*5.0/9.0;
+        return sprintf("%.1f", c);
+    }
+
     function preciptransform(x) {
         var v = parseFloat(x);
         v = v / 10.0;
         return sprintf("%.1f", v);
+    }
+
+    function normalpreciptransform(x) {
+        var v = parseFloat(x);
+        return sprintf("%.1f", 25.4*v/10.0); // convert hundredths of inches to mm
     }
 
 
@@ -224,6 +242,13 @@
                 position: verticalaxis_position
             }));
         }
+        if (element_list_contains_element_with_id(elements, 'YTD_PRCP')) {
+            // add a ytd-precip vertical axis
+            verticalaxis_position -= verticalaxis_position_delta;
+            verticalaxes.push(Mustache.render(graph.tpl['vertical-axis-ytd-prcpmm'], {
+                position: verticalaxis_position
+            }));
+        }
         if (element_list_contains_element_with_id(elements, 'SNOW')) {
             // add a snow vertical axis
             verticalaxis_position -= verticalaxis_position_delta;
@@ -236,6 +261,11 @@
         // Add plots
         //
         var plots = [];
+        if (element_list_contains_element_with_id(elements, 'NORMAL_TEMP')) {
+            // add a temperature plot
+            plots.push(Mustache.render(graph.tpl['plot-normal-temp'], {
+            }));
+        }
         if (element_list_contains_element_with_id(elements, 'TEMP')) {
             // add a temperature plot
             plots.push(Mustache.render(graph.tpl['plot-temp'], {
@@ -244,6 +274,16 @@
         if (element_list_contains_element_with_id(elements, 'PRCP')) {
             // add a precip plot
             plots.push(Mustache.render(graph.tpl['plot-prcp'], {
+            }));
+        }
+        if (element_list_contains_element_with_id(elements, 'YTD_PRCP')) {
+            // add a ytd-precip plot
+            plots.push(Mustache.render(graph.tpl['plot-ytd-prcp'], {
+            }));
+        }
+        if (element_list_contains_element_with_id(elements, 'NORMAL_YTD_PRCP')) {
+            // add a normal ytd-precip plot
+            plots.push(Mustache.render(graph.tpl['plot-normal-ytd-prcp'], {
             }));
         }
         if (element_list_contains_element_with_id(elements, 'SNOW')) {
@@ -256,6 +296,12 @@
         // Add data sections
         //
         var datas = [];
+        if (element_list_contains_element_with_id(elements, 'NORMAL_TEMP')) {
+            // add a temperature data section
+            datas.push(Mustache.render(graph.tpl['data-normal-temp'], {
+                values : datas_to_values([data['NORMAL_TMIN'],data['NORMAL_TMAX']], [normaltemptransform,normaltemptransform])
+            }));
+        }
         if (element_list_contains_element_with_id(elements, 'TEMP')) {
             // add a temperature data section
             datas.push(Mustache.render(graph.tpl['data-temp'], {
@@ -266,6 +312,18 @@
             // add a precip data section
             datas.push(Mustache.render(graph.tpl['data-prcp'], {
                 values : datas_to_values([data['PRCP']], [preciptransform])
+            }));
+        }
+        if (element_list_contains_element_with_id(elements, 'YTD_PRCP')) {
+            // add a ytd-precip data section
+            datas.push(Mustache.render(graph.tpl['data-ytd-prcp'], {
+                values : datas_to_values([data['YTD_PRCP']], [preciptransform])
+            }));
+        }
+        if (element_list_contains_element_with_id(elements, 'NORMAL_YTD_PRCP')) {
+            // add a ytd-precip data section
+            datas.push(Mustache.render(graph.tpl['data-normal-ytd-prcp'], {
+                values : datas_to_values([data['NORMAL_YTD_PRCP']], [normalpreciptransform])
             }));
         }
         if (element_list_contains_element_with_id(elements, 'SNOW')) {
