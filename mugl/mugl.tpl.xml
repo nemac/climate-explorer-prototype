@@ -12,6 +12,7 @@
       <label format="%Y-%M-%D" spacing="30D 20D 15D 10D 5D 2D 1D"/>
     </labels>
     <title>Year</title>
+    <binding id="time-binding" min="1900" max="2000"/>
   </horizontalaxis>
 {{{verticalaxes}}}
 {{{plots}}}

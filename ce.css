@@ -146,6 +146,10 @@ body {
   opacity: 0.8;
 }
 
+#right-sidebar .multigraph-area {
+  padding-top: 25px;
+}
+
 .right-sidebar-title {
   position: absolute;
   margin-right: 5px;

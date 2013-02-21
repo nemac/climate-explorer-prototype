@@ -3,6 +3,7 @@
 
     var left_sidebar_width = 300;
     var right_sidebar_width = 600;
+    var closable_multigraph_height = 250;
 
     var baseLayerURL = "http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer";
     if (window.ce === undefined) {
@@ -400,22 +401,22 @@
                                                                multigraphId : multigraphId
                                                            })));
 */
+
+        var closable_multigraph = window.multigraph.jQuery('<div></div>').css({
+            width: right_sidebar_width+'px',
+            height: closable_multigraph_height+'px'
+        }).closable_multigraph({
+            title : name
+        }).appendTo(window.multigraph.jQuery('.multigraph-area'));
+
         var dataFetcher = new ce.DataFetcher(stationid, ce.checked_ghcn_element_ids);
         dataFetcher.done(function() {
             graph.all_tpl_promises.done(function() {
                 var muglString = graph.buildMugl(stationid, parseInt(maxyear)-1, maxyear, ce.checked_elements, dataFetcher.data);
-/*
-                $('#'+messageId).remove();
-*/
-                $('.multigraph-area').append($('<div></div>').css({width: '500px', height: '250px'}).closable_multigraph({
-                    title : name,
+
+                closable_multigraph.closable_multigraph('multigraph', {
                     muglString : muglString
-                }));
-/*
-                window.multigraph.jQuery('#'+multigraphId).multigraph({
-                    'muglString'   : muglString
                 });
-*/
 
             });
         });

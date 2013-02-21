@@ -27,7 +27,19 @@
                         title       : settings.title
                     }));
 
-                    window.multigraph.jQuery(this).find('.multigraph').multigraph(settings);
+                    var width = $(this).width();
+                    var height = $(this).height() - 25 - 1;
+
+                    $this.find('.multigraph').css({
+                        width : width,
+                        height : height
+                    });
+
+                    if (settings['mugl'] !== undefined || settings['muglString'] !== undefined) {
+                        $this.find('.multigraph').multigraph(settings);
+                    } else {
+                        $(this).find('.multigraph').html('Loading...');
+                    }
 
                     $this.find('.closable-multigraph-close-button').click(function() {
                         $this.remove();
@@ -36,6 +48,13 @@
                 }
 
                 return this;
+            });
+        },
+
+        multigraph : function(options) {
+            return this.each(function() {
+                $(this).find('.multigraph').empty();
+                $(this).find('.multigraph').multigraph(options);
             });
         }
     };
@@ -51,4 +70,4 @@
         }    
     };
     
-}(jQuery));
+}(window.multigraph.jQuery));
