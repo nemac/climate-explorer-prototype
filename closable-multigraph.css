@@ -1,0 +1,28 @@
+.closable-multigraph {
+  position: relative;
+  border: 1px solid black;
+}
+
+.closable-multigraph-header {
+  padding: 2px;
+  padding-left: 6px;
+  background: #ccc;
+  border-bottom: 1px solid black;
+}
+
+.closable-multigraph-title {
+  font-weight: bold;
+}
+
+.closable-multigraph-close-button {
+  font-weight: bold;
+  float: right;
+  margin-right: 3px;
+}
+
+
+.closable-multigraph .multigraph {
+  position: absolute;
+  width: 400px;
+  height: 200px;
+}

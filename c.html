@@ -46,8 +46,55 @@
     <link rel="stylesheet" type="text/css" href="ce.css" />
 
     <script type="text/javascript">
+
+      var muglString = 
+      '<mugl>' +
+        '  <background color="0xffffff"/>' +
+        '    <window margin="0" padding="5" border="0" bordercolor="0x000000"/>' +
+        '    <plotarea margintop="10" marginleft="38" marginbottom="35" marginright="35"/>' +
+        '    <horizontalaxis id="x"  min="0" max="10" length="1"/>' +
+        '    <verticalaxis   id="y"  min="0" max="10" length="1"/>' +
+        '    <plot>' +
+          '      <horizontalaxis ref="x">' +
+            '        <variable ref="x"/>' +
+            '      </horizontalaxis>' +
+          '      <verticalaxis ref="y">' +
+            '        <variable ref="y"/>' +
+            '        <variable ref="z"/>' +
+            '      </verticalaxis>' +
+          '      <renderer type="band">' +
+            '        <option name="linecolor" value="0x000000"/>' +
+            '        <option name="linewidth" value="2"/>' +
+            '        <option name="fillcolor" value="0x0000ff"/>' +
+            '        <option name="fillopacity" value="0.5"/>' +
+            '      </renderer>' +
+          '    </plot>' +
+        '    <data>' +
+          '      <variables>' +
+            '        <variable column="0" id="x"/>' +
+            '        <variable column="1" id="y" missingvalue="-9000" missingop="le"/>' +
+            '        <variable column="2" id="z" missingvalue="-9000" missingop="le"/>' +
+            '      </variables>' +
+          '      <values>' +
+            "        0,2,4\n" +
+            "        1,4,5\n" +
+            "        3,5,7\n" +
+            "        4,-9000,-9000\n" +
+            "        5,4,6\n" +
+            "        6,4,5\n" +
+            "        7,6,4\n" +
+            "        8,6,4\n" +
+            '      </values>' +
+          '    </data>' +
+        '</mugl>'
+      ;
+
+
       $('document').ready(function() {
-      ce.init();
+        $('#thing').closable_multigraph({
+          title : 'Asheville 1 ENW',
+          muglString : muglString
+        });
       });
     </script>
 
@@ -59,50 +106,7 @@
 
   <body class="nonselectable">
 
-    <!--
-        <div class="use-sidebar sidebar-at-left" id="main">
-    -->
-
-    <div id="wrapper">
-      <div id="map"></div>
-
-
-
-      <div class="left-sidebar-opener"><div class="left-sidebar-opener-image"></div></div>
-      <div id="left-sidebar">
-        <div class="left-sidebar-title">Choose stations</div>
-        <div class="left-sidebar-closer"></div>
-        <div id="element-checks-container">
-          having data for all of these elements
-          <div id="element-checkboxes"></div>
-        </div>
-        <div id="coverage-slider-container">
-          for
-          <div id="coverage-slider"></div>
-          <div id="coverage-text"></div>
-          %
-        </div>
-        <div id="timerange-slider-container">
-          of this time period:
-          <div id="timerange-slider"></div>
-          <div id="timerange-text"><span id="timerange-min-text"></span><span id="timerange-max-text"></span></div>
-        </div>
-        <div id="station-choice-message-container">
-          <div id="station-choice-message">No stations chosen yet.</div>
-        </div>
-        <div id="message-container">
-          <div id="message"></div>
-        </div>
-      </div>
-
-      <div class="right-sidebar-opener"><div class="right-sidebar-opener-image"></div></div>
-      <div id="right-sidebar">
-        <div class="right-sidebar-closer"></div>
-        <div class="right-sidebar-title">View Data</div>
-        <div class="multigraph-area"></div>
-      </div>
-
-    </div>
+    <div id="thing" style="width: 900px; height: 400px;"></div>
 
   </body>
 

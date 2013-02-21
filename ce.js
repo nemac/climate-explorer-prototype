@@ -1,6 +1,9 @@
 (function ($) {
     "use strict";
 
+    var left_sidebar_width = 300;
+    var right_sidebar_width = 600;
+
     var baseLayerURL = "http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer";
     if (window.ce === undefined) {
         window.ce = {};
@@ -79,15 +82,29 @@
 
     ce.init = function() {
 
-        $('.sidebar-closer').click(function() {
-            $('#sidebar').animate({ left: '-=300px' }, 400, function() {
-                $('#sidebar').css({'display' : 'none'});
+        $('#left-sidebar').css({width: left_sidebar_width+'px'});
+        $('#right-sidebar').css({width: right_sidebar_width+'px'});
+
+        $('.left-sidebar-closer').click(function() {
+            $('#left-sidebar').animate({ left: '-='+left_sidebar_width+'px' }, 400, function() {
+                $('#left-sidebar').css({'display' : 'none'});
             });
         });
 
-        $('.sidebar-opener').click(function() {
-            $('#sidebar').css({'display' : 'block'});
-            $('#sidebar').animate({ left: '+=300px' });
+        $('.left-sidebar-opener').click(function() {
+            $('#left-sidebar').css({'display' : 'block'});
+            $('#left-sidebar').animate({ left: '+='+left_sidebar_width+'px' });
+        });
+
+        $('.right-sidebar-closer').click(function() {
+            $('#right-sidebar').animate({ right: '-='+right_sidebar_width+'px' }, 400, function() {
+                $('#right-sidebar').css({'display' : 'none'});
+            });
+        });
+
+        $('.right-sidebar-opener').click(function() {
+            $('#right-sidebar').css({'display' : 'block'});
+            $('#right-sidebar').animate({ right: '+='+right_sidebar_width+'px' });
         });
 
 
@@ -364,6 +381,7 @@
         var messageId          = "multigraph-message-" + stationid;
         var multigraphDialogId = "multigraph-dialog-" + stationid;
         var multigraphId       = "multigraph-" + stationid;
+/*
         $(Mustache.render('<div id={{{multigraphDialogId}}}></div>', {
             multigraphDialogId : multigraphDialogId
         })).dialog({ zIndex:10050, 
@@ -381,15 +399,23 @@
                                                            {
                                                                multigraphId : multigraphId
                                                            })));
-
+*/
         var dataFetcher = new ce.DataFetcher(stationid, ce.checked_ghcn_element_ids);
         dataFetcher.done(function() {
             graph.all_tpl_promises.done(function() {
                 var muglString = graph.buildMugl(stationid, parseInt(maxyear)-1, maxyear, ce.checked_elements, dataFetcher.data);
+/*
                 $('#'+messageId).remove();
+*/
+                $('.multigraph-area').append($('<div></div>').css({width: '500px', height: '250px'}).closable_multigraph({
+                    title : name,
+                    muglString : muglString
+                }));
+/*
                 window.multigraph.jQuery('#'+multigraphId).multigraph({
                     'muglString'   : muglString
                 });
+*/
 
             });
         });
