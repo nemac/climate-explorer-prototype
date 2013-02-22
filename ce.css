@@ -112,6 +112,7 @@ body {
 }
 
 .right-sidebar-opener {
+  visibility: hidden;
   position: absolute;
   top: 0;
   right: 0;

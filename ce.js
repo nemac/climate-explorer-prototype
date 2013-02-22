@@ -21,12 +21,17 @@
     var stationMarkerIcon = new OpenLayers.Icon('icons/marker.png', size, offset);
 
     ce.elements = [
+        { title : 'Temperature Max/Min',         id : 'TEMP',            ghcn_element_ids : ['TMAX', 'TMIN', 'NORMAL_TMAX', 'NORMAL_TMIN'] },
+        { title : 'YTD Precipitation',           id : 'YTD_PRCP',        ghcn_element_ids : ['YTD_PRCP', 'NORMAL_YTD_PRCP'] },
+        { title : 'Snow',                        id : 'SNOW',            ghcn_element_ids : ['SNOW'] }
+/*
         { title : 'Temperature Max/Min',         id : 'TEMP',            ghcn_element_ids : ['TMAX', 'TMIN'] },
         { title : 'Normal Temperature Max/Min',  id : 'NORMAL_TEMP',     ghcn_element_ids : ['NORMAL_TMAX', 'NORMAL_TMIN'] },
         { title : 'YTD Precipitation',           id : 'YTD_PRCP',        ghcn_element_ids : ['YTD_PRCP'] },
         { title : 'Normal Precipitation',        id : 'NORMAL_YTD_PRCP', ghcn_element_ids : ['NORMAL_YTD_PRCP'] },
         { title : 'Precipitation',               id : 'PRCP',            ghcn_element_ids : ['PRCP'] },
         { title : 'Snow',                        id : 'SNOW',            ghcn_element_ids : ['SNOW'] }
+*/
     ];
 
     ce.checked_elements = [];
@@ -81,6 +86,42 @@
     };
     ce.DataFetcher = DataFetcher;
 
+    var is_right_sidebar_open = true;
+
+    function right_sidebar_close(immediate) {
+        if (is_right_sidebar_open) {
+            if (immediate === true) {
+                $('#right-sidebar').css({
+                    right     : '-'+right_sidebar_width+'px',
+                    'display' : 'none'
+                });
+            } else {
+                $('#right-sidebar').animate({ right: '-='+right_sidebar_width+'px' }, 400, function() {
+                    $('#right-sidebar').css({'display' : 'none'});
+                });
+            }
+            is_right_sidebar_open = false;
+        }
+    }
+
+    function right_sidebar_open() {
+        if (!is_right_sidebar_open) {
+            $('#right-sidebar').css({'display' : 'block'});
+            $('#right-sidebar').animate({ right: '+='+right_sidebar_width+'px' });
+            is_right_sidebar_open = true;
+        }
+    }
+
+    function right_sidebar_opener_show(visible) {
+        if (visible) {
+            $('.right-sidebar-opener').css({visibility: 'visible'});
+        } else {
+            $('.right-sidebar-opener').css({visibility: 'hidden'});
+        }
+    }
+
+    var num_graphs = 0;
+
     ce.init = function() {
 
         $('#left-sidebar').css({width: left_sidebar_width+'px'});
@@ -98,16 +139,14 @@
         });
 
         $('.right-sidebar-closer').click(function() {
-            $('#right-sidebar').animate({ right: '-='+right_sidebar_width+'px' }, 400, function() {
-                $('#right-sidebar').css({'display' : 'none'});
-            });
+            right_sidebar_close();
         });
 
         $('.right-sidebar-opener').click(function() {
-            $('#right-sidebar').css({'display' : 'block'});
-            $('#right-sidebar').animate({ right: '+='+right_sidebar_width+'px' });
+            right_sidebar_open();
         });
 
+        right_sidebar_close(true);
 
         $('#coverage-slider').slider({
             min    : 0,
@@ -216,7 +255,7 @@
                                     {
                                         n        : stationsToShow.length,
                                         elements : $.map(ce.checked_elements, function (e) {
-                                                      return e.ghcn_element_ids.join(',');
+                                                      return e.ghcn_element_ids.join(', ');
                                                    }).join(', '),
                                         minyear  : minyear,
                                         maxyear  : maxyear
@@ -359,16 +398,7 @@
                 });
                 var clickHandler = function(evt) {
                     $('#message')[0].innerHTML = 'You clicked on: ' + id;
-
                     displayGraph(markerCoords, name, id, minyear, maxyear);
-
-
-/*
-                    var fetcher = new DataFetcher(id, ce.checked_ghcn_element_ids);
-                    fetcher.done(function() {
-                        displayGraph(fetcher.data['TMAX'], markerCoords, name, id, minyear, maxyear);
-                    });
-*/
                 };
                 marker.events.register('click', marker, clickHandler);
                 marker.events.register('touchstart', marker, clickHandler);
@@ -382,31 +412,24 @@
         var messageId          = "multigraph-message-" + stationid;
         var multigraphDialogId = "multigraph-dialog-" + stationid;
         var multigraphId       = "multigraph-" + stationid;
-/*
-        $(Mustache.render('<div id={{{multigraphDialogId}}}></div>', {
-            multigraphDialogId : multigraphDialogId
-        })).dialog({ zIndex:10050, 
-                     position:"left",
-                     width: 750,
-                     title: name,
-                     autoOpen: true,
-                     hide:"explode"
-                   });
-        $('#'+multigraphDialogId).append($(Mustache.render('<div id="{{{messageId}}}">Loading...</div>',
-                                                           {
-                                                               messageId : messageId
-                                                           })));
-        $('#'+multigraphDialogId).append($(Mustache.render('<div id="{{{multigraphId}}}" style="width: 750px; height: 300px;"></div>',
-                                                           {
-                                                               multigraphId : multigraphId
-                                                           })));
-*/
+
+        num_graphs = num_graphs + 1;
+
+        right_sidebar_open();
+        right_sidebar_opener_show(true);
 
         var closable_multigraph = window.multigraph.jQuery('<div></div>').css({
             width: right_sidebar_width+'px',
             height: closable_multigraph_height+'px'
         }).closable_multigraph({
-            title : name
+            title : name,
+            afterClose : function () {
+                num_graphs = num_graphs - 1;
+                if (num_graphs <= 0) {
+                    right_sidebar_close();
+                    right_sidebar_opener_show(false);
+                }
+            }
         }).appendTo(window.multigraph.jQuery('.multigraph-area'));
 
         var dataFetcher = new ce.DataFetcher(stationid, ce.checked_ghcn_element_ids);

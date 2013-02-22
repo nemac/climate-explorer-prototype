@@ -23,6 +23,10 @@
                     }, options);
                 if ( ! data ) {
 
+                    $this.data('closable_multigraph', {
+                        afterClose : settings.afterClose
+                    });
+
                     $this.html(Mustache.to_html(closableMultigraphTpl, {
                         title       : settings.title
                     }));
@@ -42,7 +46,14 @@
                     }
 
                     $this.find('.closable-multigraph-close-button').click(function() {
+                        var afterClose;
+                        if ($this.data('closable_multigraph').afterClose !== undefined) {
+                            afterClose = $this.data('closable_multigraph').afterClose();
+                        }
                         $this.remove();
+                        if (afterClose !== undefined) {
+                            afterClose();
+                        }
                     });
 
                 }

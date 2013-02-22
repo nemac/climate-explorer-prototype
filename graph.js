@@ -261,8 +261,8 @@
         // Add plots
         //
         var plots = [];
-        if (element_list_contains_element_with_id(elements, 'NORMAL_TEMP')) {
-            // add a temperature plot
+        if (element_list_contains_element_with_id(elements, 'TEMP')) {
+            // add a normal temperature plot
             plots.push(Mustache.render(graph.tpl['plot-normal-temp'], {
             }));
         }
@@ -281,7 +281,7 @@
             plots.push(Mustache.render(graph.tpl['plot-ytd-prcp'], {
             }));
         }
-        if (element_list_contains_element_with_id(elements, 'NORMAL_YTD_PRCP')) {
+        if (element_list_contains_element_with_id(elements, 'YTD_PRCP')) {
             // add a normal ytd-precip plot
             plots.push(Mustache.render(graph.tpl['plot-normal-ytd-prcp'], {
             }));
@@ -296,7 +296,7 @@
         // Add data sections
         //
         var datas = [];
-        if (element_list_contains_element_with_id(elements, 'NORMAL_TEMP')) {
+        if (element_list_contains_element_with_id(elements, 'TEMP')) {
             // add a temperature data section
             datas.push(Mustache.render(graph.tpl['data-normal-temp'], {
                 values : datas_to_values([data['NORMAL_TMIN'],data['NORMAL_TMAX']], [normaltemptransform,normaltemptransform])
@@ -320,7 +320,7 @@
                 values : datas_to_values([data['YTD_PRCP']], [preciptransform])
             }));
         }
-        if (element_list_contains_element_with_id(elements, 'NORMAL_YTD_PRCP')) {
+        if (element_list_contains_element_with_id(elements, 'YTD_PRCP')) {
             // add a ytd-precip data section
             datas.push(Mustache.render(graph.tpl['data-normal-ytd-prcp'], {
                 values : datas_to_values([data['NORMAL_YTD_PRCP']], [normalpreciptransform])
