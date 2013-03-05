@@ -81,4 +81,4 @@
         }    
     };
     
-}(window.multigraph.jQuery));
+}(jQuery));

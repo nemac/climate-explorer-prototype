@@ -148,6 +148,10 @@
 
         right_sidebar_close(true);
 
+        $('.right-sidebar').resizable({
+            handles: 'w'
+        });
+
         $('#coverage-slider').slider({
             min    : 0,
             max    : 100,
@@ -204,26 +208,28 @@
             ce.checked_elements = [];
             ce.checked_ghcn_element_ids = [];
             var i, j;
-            for (i=0; i<ce.elements.length; ++i) {
-                var element = ce.elements[i];
+            $.each(ce.elements, function (i,element) {
                 if ($('#checkbox-'+element.id).attr('checked')) {
+                    element.checked = true;
                     ce.checked_elements.push(element);
                     $.each(element.ghcn_element_ids, function(k,id) {
                         ce.checked_ghcn_element_ids.push(id);
                     });
+                } else {
+                    element.checked = false;
                 }
-            }
+            });
             var values = $('#timerange-slider').slider('values');
 
             var minyear = values[0];
             var maxyear = values[1];
 
             var inventoryPromises = [];
-            for (i=0; i<ce.checked_elements.length; ++i) {
+            $.each(ce.checked_elements, function (i) {
                 for (j=0; j<ce.checked_elements[i].ghcn_element_ids.length; ++j) {
                     inventoryPromises.push(insureInventory(ce.checked_elements[i].ghcn_element_ids[j]));
                 }
-            }
+            });
 
             $.when.apply(this, inventoryPromises).then(function() {
                 var stationsToShow = [], i, id, station, j, k, element, station_ok, coverage_threshold,
@@ -398,7 +404,8 @@
                 });
                 var clickHandler = function(evt) {
                     $('#message')[0].innerHTML = 'You clicked on: ' + id;
-                    displayGraph(markerCoords, name, id, minyear, maxyear);
+                    //displayGraph(markerCoords, name, id, minyear, maxyear);
+                    displayStation(markerCoords, name, id, minyear, maxyear);
                 };
                 marker.events.register('click', marker, clickHandler);
                 marker.events.register('touchstart', marker, clickHandler);
@@ -408,6 +415,51 @@
         ce.map.addLayers([stationsLayer]);
     }
 
+    function displayStation(coords, name, stationid, minyear, maxyear) {
+
+        var graphs = [];
+        var checked_elements = [];
+
+        right_sidebar_open();
+        right_sidebar_opener_show(true);
+
+        $.each(ce.elements, function (i,element) {
+            if (element.checked) {
+                checked_elements.push(element);
+            }
+        });
+
+        $.each(ce.elements, function (i,element) {
+            var ghcn_element_ids = element.ghcn_element_ids;
+            graphs.push({
+                title : element.title,
+                muglFunc : function (target) {
+                    var dataFetcher = new ce.DataFetcher(stationid, ghcn_element_ids);
+                    dataFetcher.done(function() {
+                        graph.all_tpl_promises.done(function() {
+                            var muglString = graph.buildMugl(stationid, parseInt(maxyear)-1, maxyear, [ element ], dataFetcher.data);
+                            window.multigraph.jQuery(target).multigraph({
+                                muglString : muglString
+                            });
+                        });
+                    });
+                }
+            });
+        });
+
+
+        var $station_graph_display = window.multigraph.jQuery('<div></div>').station_graph_display({
+            title  : name,
+            graphs : graphs
+        }).appendTo($('.multigraph-area'));
+        $.each(ce.elements, function (i,element) {
+            if (element.checked) {
+                $station_graph_display.station_graph_display('displayGraph', i);
+            }
+        });
+        
+    }
+    
     function displayGraph(coords, name, stationid, minyear, maxyear) {
         var messageId          = "multigraph-message-" + stationid;
         var multigraphDialogId = "multigraph-dialog-" + stationid;
@@ -446,53 +498,6 @@
 
     }
 
-/*
-    function displayGraph(data, coords, name, id, minyear, maxyear) {
-        var messageId          = "multigraph-message-" + id;
-        var multigraphDialogId = "multigraph-dialog-" + id;
-        var multigraphId       = "multigraph-" + id;
-        $(Mustache.render('<div id={{{multigraphDialogId}}}></div>',
-                          {
-                              multigraphDialogId : multigraphDialogId
-                          })).dialog({ zIndex:10050, 
-                                       position:"left",
-                                       width: 650,
-                                       title: name,
-                                       autoOpen: true,
-                                       hide:"explode"
-                                     });
-        $('#'+multigraphDialogId).append($(Mustache.render('<div id="{{{messageId}}}">Loading...</div>',
-                                                           {
-                                                               messageId : messageId
-                                                           })));
-        $('#'+multigraphDialogId).append($(Mustache.render('<div id="{{{multigraphId}}}" style="width: 600px; height: 300px;"></div>',
-                                                           {
-                                                               multigraphId : multigraphId
-                                                           })));
-        $.ajax({ url : 'mugl.tpl.xml',
-                 dataType : "text",
-                 success : function (mugl_tpl) {
-                     var muglString = Mustache.render(mugl_tpl, {
-                         mindate : parseInt(maxyear,10)-1,
-                         maxdate : maxyear,
-                         values  : inv_to_values(data)
-                     });
-                     $('#'+messageId).remove();
-                     var promise = window.multigraph.jQuery('#'+multigraphId).multigraph({
-                         //NOTE: coords.lon and coords.lat on the next line are really x,y coords in EPSG:900913, not lon/lat:
-                         'muglString'   : muglString
-                     });
-                     window.multigraph.jQuery('#'+multigraphId).multigraph('done', function() {
-                         //$('#'+messageId).empty();
-                         //$('#'+messageId).text(name);
-                     });
-                 },
-                 error: function(jqXHR, textStatus, errorThrown) {
-                     alert(textStatus);
-                 }
-               });
-    }
-*/
     var initOpenLayers = function(baseLayerInfo) {
 
         var layer = new OpenLayers.Layer.ArcGISCache("AGSCache", baseLayerURL, {

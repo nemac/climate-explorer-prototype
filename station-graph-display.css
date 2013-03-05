@@ -1,0 +1,27 @@
+.station-graph-display {
+  position: relative;
+  border: 1px solid black;
+}
+
+.station-graph-display-header {
+  padding: 2px;
+  padding-left: 6px;
+  background: #ccc;
+  border-bottom: 1px solid black;
+}
+
+.station-graph-display-title {
+  font-weight: bold;
+}
+
+.station-graph-display-close-button {
+  font-weight: bold;
+  float: right;
+  margin-right: 3px;
+}
+
+.station-graph-display .multigraph {
+  position: absolute;
+  width: 400px;
+  height: 200px;
+}

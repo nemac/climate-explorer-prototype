@@ -27,10 +27,6 @@
     <script src="libs/OpenLayers212/lib/OpenLayers/Control/ScaleBar.js"></script>
     <script type="text/javascript" src="libs/mustache/mustache.js"></script>
     <script type="text/javascript" src="libs/sprintf/sprintf-0.7-beta1.js"></script>
-    <script type="text/javascript" src="closable-multigraph.js"></script>
-    <link type="text/css" rel="stylesheet" href="closable-multigraph.css" />
-    <script type="text/javascript" src="ce.js"></script>
-    <script type="text/javascript" src="graph.js"></script>
     <link type="text/css" rel="stylesheet" href="libs/jquery18/themes/base/jquery.ui.all.css" />
     <script type="text/javascript" src="libs/jquery18/ui/jquery.ui.core.js"></script>
     <script type="text/javascript" src="libs/jquery18/ui/jquery.ui.widget.js"></script>
@@ -44,7 +40,18 @@
     <script type="text/javascript" src="libs/jquery18/ui/jquery.effects.core.js"></script>
     <script type="text/javascript" src="libs/jquery18/ui/jquery.effects.scale.js"></script>
     <script type="text/javascript" src="libs/jquery18/ui/jquery.effects.fold.js"></script>
+
+    <script type="text/javascript" src="graph.js"></script>
+    <script type="text/javascript" src="ce.js"></script>
+
+    <script type="text/javascript">
+      jQuery = window.multigraph.jQuery;
+    </script>
+    <script type="text/javascript" src="station-graph-display.js"></script>
+
+
     <link rel="stylesheet" type="text/css" href="ce.css" />
+    <link type="text/css" rel="stylesheet" href="station-graph-display.css" />
 
     <script type="text/javascript">
       $('document').ready(function() {
