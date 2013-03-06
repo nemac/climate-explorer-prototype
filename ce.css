@@ -158,6 +158,11 @@ body {
   right: 0;
 }
 
+.right-sidebar-show-selected {
+  position: absolute;
+  right: 20px;
+}
+
 #map {
   position: absolute;
   left: 0;

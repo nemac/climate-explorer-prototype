@@ -31,9 +31,22 @@
 
     var stationColorIndex = stationColors.length - 1;
 
+    var stationColorsInUse = {};
+
+    function freeStationColor(color) {
+        delete stationColorsInUse[color];
+    }
+
     function getNewStationColor() {
-        stationColorIndex = ( stationColorIndex + 1 ) % stationColors.length;
-        return stationColors[stationColorIndex];
+        var numberOfColorsChecked = 0;
+        while (true) {
+            stationColorIndex = ( stationColorIndex + 1 ) % stationColors.length;
+            if ( (!stationColorsInUse[stationColors[stationColorIndex].color]) || numberOfColorsChecked >= stationColors.length) {
+                stationColorsInUse[stationColors[stationColorIndex].color] = true;
+                return stationColors[stationColorIndex];
+            }
+            ++numberOfColorsChecked;
+        }
     }
 
     ce.elements = [
@@ -170,6 +183,14 @@
 
         $('.right-sidebar-opener').click(function() {
             right_sidebar_open();
+        });
+
+        $('.right-sidebar-show-selected input[type=checkbox]').click(function() {
+            if ($(this).is(':checked')) {
+                hideNonSelectedStations();
+            } else {
+                showAllStations();
+            }
         });
 
         right_sidebar_close(true);
@@ -406,7 +427,25 @@
             return rows.join("\n");
         }
 
+    function hideNonSelectedStations() {
+        if (stationsLayer == undefined) {
+            return;
+        }
+        $.each(stationsLayer.markers, function (i,marker) {
+            if (! marker.selected) {
+                marker.display(false);
+            }
+        });
+    }
 
+    function showAllStations() {
+        if (stationsLayer == undefined) {
+            return;
+        }
+        $.each(stationsLayer.markers, function (i,marker) {
+            marker.display(true);
+        });
+    }
 
     function showStations(stations, minyear, maxyear) {
         if (stationsLayer !== undefined) {
@@ -431,9 +470,11 @@
                 marker.events.register('mouseover', marker, function(evt) {
                     //console.log(name);
                 });
+                marker.selected = false;
                 var clickHandler = function(evt) {
                     $('#message')[0].innerHTML = 'You clicked on: ' + id;
                     var color = getNewStationColor();
+                    marker.selected = true;
                     marker.setUrl(color.icon);
                     //icon = new OpenLayers.Icon(stationColors[0].icon, size, offset);
                     //displayGraph(markerCoords, name, id, minyear, maxyear);
@@ -491,6 +532,7 @@
             }
         });
 
+        marker.selectedStationColor = color;
 
         var $station_graph_display = $('<div></div>').station_graph_display({
             title        : name,
@@ -498,6 +540,12 @@
             graphs       : graphs,
             afterClose   : function () {
                 marker.setUrl('icons/marker-de5749.png');
+                marker.selected = false;
+                if ($('.right-sidebar-show-selected input[type=checkbox]').is(':checked')) {
+                    marker.display(false);
+                }
+                freeStationColor(marker.selectedStationColor);
+                delete marker.selectedStationColor;
             }
         }).appendTo($('.multigraph-area'));
         $.each(ce.elements, function (i,element) {
