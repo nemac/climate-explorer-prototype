@@ -20,13 +20,9 @@
   margin-right: 3px;
 }
 
-/*
 .station-graph-display .multigraph {
-  position: absolute;
-  width: 400px;
-  height: 200px;
+  position: relative;
 }
-*/
 
 .station-graph-display .multigraph .loading-message {
   margin-left: 40px;
@@ -34,4 +30,10 @@
 .station-graph-display .multigraph .loading-message .spinner {
   margin-top: 16px;
   margin-right: 20px;
+}
+
+.station-graph-display .multigraph .close-button {
+  position : absolute;
+  right: 5px;
+  top: 5px;
 }

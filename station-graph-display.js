@@ -48,6 +48,13 @@
             + '</div>'
     );
 
+    var multigraphCloseButtonTpl = (
+        ''
+            + '<div class="close-button">'
+            +   '<a href="#">x</a>'
+            + '</div>'
+    );
+
     var graphLinkTpl = (
         ''
             + '<a href="#">{{{title}}}</a>'
@@ -72,6 +79,14 @@
                     $graphDiv.multigraph({
                         muglString : muglString
                     });
+                    var $closeButton = $(Mustache.render(multigraphCloseButtonTpl, {
+                    })).click(function(e) {
+                        $graphDiv.remove();
+                        e.preventDefault();
+                        graph.onDisplay = false;
+                        methods._updateDisplayLinks.apply($this);
+                    });
+                    $graphDiv.append($closeButton);
                 });
                 graph.onDisplay = true;
                 methods._updateDisplayLinks.apply($this);
