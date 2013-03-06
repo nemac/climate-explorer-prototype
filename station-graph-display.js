@@ -29,12 +29,28 @@
             +      '<span class="station-graph-display-close-button"><a href="#">X</a></span>'
             +    '</div>'
             +    '<div class="graphs"></div>'
+            +    '<div class="control">'
+            +      '<span class="label">Also available:</span>'
+            +      '<span class="buttons"></span>'
+            +    '</div>'
             +  '</div>'
     );
     
     var multigraphTpl = (
         ''
-            + '<div class="multigraph"></div>'
+            + '<div class="multigraph">'
+            +   '<div class="loading-message">'
+            +     '<span class="spinner">'
+            +       '<img src="icons/ajax-loader.gif">'
+            +     '</span>'
+            +     '<span class="title">Loading {{{title}}}</span>'
+            +   '</div>'
+            + '</div>'
+    );
+
+    var graphLinkTpl = (
+        ''
+            + '<a href="#">{{{title}}}</a>'
     );
             
 
@@ -43,20 +59,54 @@
         displayGraph : function(i) {
             return this.each(function() {
                 var $this = $(this);
+                var graph = $this.data('station_graph_display').graphs[i];
                 var $graphDiv = $(Mustache.to_html(multigraphTpl, {
-                    //...
+                    title : graph.title
                 })).css({
                     width : $this.width(),
-                    height : $this.data('station_graph_display').graphHeight,
-                    background : '#ff0000'
+                    height : $this.data('station_graph_display').graphHeight
                 }).appendTo($this.find('.graphs'));
-
-                $this.data('station_graph_display').graphs[i].muglPromise().done(function(muglString) {
+                
+                graph.muglPromise().done(function(muglString) {
+                    $graphDiv.empty();
                     $graphDiv.multigraph({
                         muglString : muglString
                     });
                 });
+                graph.onDisplay = true;
+                methods._updateDisplayLinks.apply($this);
             });
+        },
+
+        _updateDisplayLinks : function() {
+            return this.each(function() {
+                var $this = $(this);
+                var links = [];
+                $.each($this.data('station_graph_display').graphs, function(i,graph) {
+                    if (! graph.onDisplay) {
+                        var $link = $(Mustache.render(graphLinkTpl, {
+                            title : graph.title
+                        })).click(function (e) {
+                            methods.displayGraph.call($this, i);
+                            e.preventDefault();
+                        });
+                        links.push($link);
+                    }
+                });
+                var $buttons = $this.find('.control .buttons');
+                $buttons.empty();
+                if (links.length > 0) {
+                    $this.find('.control').css({display: 'block'});
+                    $.each(links, function(i,link) {
+                        if (i > 0) {
+                            $buttons.append($('<span>,</span>'));
+                        }
+                        $buttons.append(link);
+                    });
+                } else {
+                    $this.find('.control').css({display: 'none'});
+                }
+            });            
         },
 
         init : function(options) {
@@ -70,10 +120,10 @@
 
                     // initialize our plugin data
                     $this.data('station_graph_display', {
-                        afterClose  : settings.afterClose,
-                        title       : settings.title,
-                        graphs      : settings.graphs,
-                        graphHeight : settings.graphHeight
+                        afterClose   : settings.afterClose,
+                        title        : settings.title,
+                        graphs       : settings.graphs,
+                        graphHeight  : settings.graphHeight
                     });
 
                     // create the html for the graph display
@@ -81,13 +131,10 @@
                         title       : settings.title
                     }));
 
-                    var width = $(this).width();
-
-                    // display any graphs that are initially open
-                    $.each(settings.graphs, function(i,obj) {
-                        if (obj.open) {
-                        }
+                    $.each(settings.graphs, function(i,graph) {
+                        graph.onDisplay = false;
                     });
+                    methods._updateDisplayLinks.apply($this);
 
                     $this.find('.station-graph-display-close-button').click(function() {
                         var afterClose;

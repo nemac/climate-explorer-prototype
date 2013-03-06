@@ -69,7 +69,10 @@
                         that.data[ghcn_element_id] = data;
                     },
                     error: function(jqXHR, textStatus, errorThrown) {
-                        alert(textStatus);
+                        console.log(textStatus);
+                        console.log(jqXHR);
+                        console.log(errorThrown);
+                        //alert(textStatus);
                     }
                 })
             );
@@ -123,6 +126,13 @@
     var num_graphs = 0;
 
     ce.init = function() {
+
+        //NOTE: need to insure inventories have loaded before trying to use them!!!
+        $.each(ce.elements, function (i,element) {
+            $.each(element.ghcn_element_ids, function (j,ghcn_element_id) {
+                insureInventory(ghcn_element_id);
+            });
+        });
 
         $('#left-sidebar').css({width: left_sidebar_width+'px'});
         $('#right-sidebar').css({width: right_sidebar_width+'px'});
@@ -353,7 +363,10 @@
                     initOpenLayers(baseLayerInfo);
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
-                    alert(textStatus);
+                    console.log(textStatus);
+                    console.log(jqXHR);
+                    console.log(errorThrown);
+                    //alert(textStatus);
                 }
             });
     };
@@ -415,6 +428,17 @@
         ce.map.addLayers([stationsLayer]);
     }
 
+    function stationHasGHCNElements(stationid, ghcn_element_ids) {
+        var i;
+        for (i=0; i<ghcn_element_ids.length; ++i) {
+            console.log(ghcn_element_ids[i]);
+            if (! inventory[ghcn_element_ids[i]][stationid]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     function displayStation(coords, name, stationid, minyear, maxyear) {
 
         var graphs = [];
@@ -431,20 +455,22 @@
 
         $.each(ce.elements, function (i,element) {
             var ghcn_element_ids = element.ghcn_element_ids;
-            graphs.push({
-                title : element.title,
-                muglPromise : function () {
-                    var deferred = $.Deferred();
-                    var dataFetcher = new ce.DataFetcher(stationid, ghcn_element_ids);
-                    dataFetcher.done(function() {
-                        graph.all_tpl_promises.done(function() {
-                            var muglString = graph.buildMugl(stationid, parseInt(maxyear)-1, maxyear, [ element ], dataFetcher.data);
-                            deferred.resolve(muglString);
+            if (stationHasGHCNElements(stationid, ghcn_element_ids)) {
+                graphs.push({
+                    title : element.title,
+                    muglPromise : function () {
+                        var deferred = $.Deferred();
+                        var dataFetcher = new ce.DataFetcher(stationid, ghcn_element_ids);
+                        dataFetcher.done(function() {
+                            graph.all_tpl_promises.done(function() {
+                                var muglString = graph.buildMugl(stationid, parseInt(maxyear)-1, maxyear, [ element ], dataFetcher.data);
+                                deferred.resolve(muglString);
+                            });
                         });
-                    });
-                    return deferred.promise();
-                }
-            });
+                        return deferred.promise();
+                    }
+                });
+            }
         });
 
 
