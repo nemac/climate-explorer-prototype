@@ -129,7 +129,8 @@
                 var $this = $(this),
                     data = $this.data('station_graph_display'),
                     settings = $.extend({
-                        graphHeight: 150
+                        graphHeight : 150,
+                        headerColor : '#cccccc'
                     }, options);
                 if ( ! data ) {
 
@@ -138,13 +139,19 @@
                         afterClose   : settings.afterClose,
                         title        : settings.title,
                         graphs       : settings.graphs,
-                        graphHeight  : settings.graphHeight
+                        graphHeight  : settings.graphHeight,
+                        headerColor  : settings.headerColor
                     });
 
                     // create the html for the graph display
                     $this.html(Mustache.to_html(stationGraphDisplayTpl, {
                         title       : settings.title
                     }));
+
+                    // set the header bar color
+                    $this.find('.station-graph-display-header').css({
+                        background : settings.headerColor
+                    });
 
                     $.each(settings.graphs, function(i,graph) {
                         graph.onDisplay = false;

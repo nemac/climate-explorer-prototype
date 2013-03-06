@@ -20,6 +20,22 @@
     var offset = new OpenLayers.Pixel(-(size.w)/2, -size.h);
     var stationMarkerIcon = new OpenLayers.Icon('icons/marker-de5749.png', size, offset);
 
+    var stationColors = [
+        { icon : 'icons/marker-4b9849.png', color : '#4b9849' },
+        { icon : 'icons/marker-5a87a4.png', color : '#5a87a4' },
+        { icon : 'icons/marker-65464a.png', color : '#65464a' },
+        { icon : 'icons/marker-7a437c.png', color : '#7a437c' },
+        //{ icon : 'icons/marker-de5749.png', color : '#de5749' }, // keep this out out, since it's the default
+        { icon : 'icons/marker-e99600.png', color : '#e99600' }
+    ];
+
+    var stationColorIndex = stationColors.length - 1;
+
+    function getNewStationColor() {
+        stationColorIndex = ( stationColorIndex + 1 ) % stationColors.length;
+        return stationColors[stationColorIndex];
+    }
+
     ce.elements = [
         { title : 'Temperature Max/Min',         id : 'TEMP',            ghcn_element_ids : ['TMAX', 'TMIN', 'NORMAL_TMAX', 'NORMAL_TMIN'] },
         { title : 'YTD Precipitation',           id : 'YTD_PRCP',        ghcn_element_ids : ['YTD_PRCP', 'NORMAL_YTD_PRCP'] },
@@ -408,7 +424,7 @@
             coords = coords.transform(new OpenLayers.Projection("EPSG:4326"),
                                       new OpenLayers.Projection("EPSG:900913"));
             var marker = new OpenLayers.Marker(coords,stationMarkerIcon.clone());
-            (function () {
+            (function (marker) {
                 var name = station.name;
                 var id   = station.id;
                 var markerCoords = coords;
@@ -417,12 +433,15 @@
                 });
                 var clickHandler = function(evt) {
                     $('#message')[0].innerHTML = 'You clicked on: ' + id;
+                    var color = getNewStationColor();
+                    marker.setUrl(color.icon);
+                    //icon = new OpenLayers.Icon(stationColors[0].icon, size, offset);
                     //displayGraph(markerCoords, name, id, minyear, maxyear);
-                    displayStation(markerCoords, name, id, minyear, maxyear);
+                    displayStation(markerCoords, name, id, minyear, maxyear, color.color, marker);
                 };
                 marker.events.register('click', marker, clickHandler);
                 marker.events.register('touchstart', marker, clickHandler);
-            }());
+            }(marker));
             stationsLayer.addMarker(marker);
         }
         ce.map.addLayers([stationsLayer]);
@@ -431,7 +450,6 @@
     function stationHasGHCNElements(stationid, ghcn_element_ids) {
         var i;
         for (i=0; i<ghcn_element_ids.length; ++i) {
-            console.log(ghcn_element_ids[i]);
             if (! inventory[ghcn_element_ids[i]][stationid]) {
                 return false;
             }
@@ -439,7 +457,7 @@
         return true;
     }
 
-    function displayStation(coords, name, stationid, minyear, maxyear) {
+    function displayStation(coords, name, stationid, minyear, maxyear, color, marker) {
 
         var graphs = [];
         var checked_elements = [];
@@ -475,8 +493,12 @@
 
 
         var $station_graph_display = $('<div></div>').station_graph_display({
-            title  : name,
-            graphs : graphs
+            title        : name,
+            headerColor  : color,
+            graphs       : graphs,
+            afterClose   : function () {
+                marker.setUrl('icons/marker-de5749.png');
+            }
         }).appendTo($('.multigraph-area'));
         $.each(ce.elements, function (i,element) {
             if (element.checked) {
