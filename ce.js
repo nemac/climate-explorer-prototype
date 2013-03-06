@@ -25,9 +25,12 @@
         { icon : 'icons/marker-5a87a4.png', color : '#5a87a4' },
         { icon : 'icons/marker-65464a.png', color : '#65464a' },
         { icon : 'icons/marker-7a437c.png', color : '#7a437c' },
-        //{ icon : 'icons/marker-de5749.png', color : '#de5749' }, // keep this out out, since it's the default
+        // keep this out out, since we're using it as the default:
+        //{ icon : 'icons/marker-de5749.png', color : '#de5749' }, 
         { icon : 'icons/marker-e99600.png', color : '#e99600' }
     ];
+
+    var numberOfSelectedStations = 0;
 
     var stationColorIndex = stationColors.length - 1;
 
@@ -503,6 +506,8 @@
         var graphs = [];
         var checked_elements = [];
 
+        ++numberOfSelectedStations;
+
         right_sidebar_open();
         right_sidebar_opener_show(true);
 
@@ -546,6 +551,11 @@
                 }
                 freeStationColor(marker.selectedStationColor);
                 delete marker.selectedStationColor;
+                --numberOfSelectedStations;
+                if (numberOfSelectedStations <= 0) {
+                    right_sidebar_close();
+                    right_sidebar_opener_show(false);
+                }
             }
         }).appendTo($('.multigraph-area'));
         $.each(ce.elements, function (i,element) {
