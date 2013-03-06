@@ -18,7 +18,7 @@
 
     var size = new OpenLayers.Size(21,25);
     var offset = new OpenLayers.Pixel(-(size.w)/2, -size.h);
-    var stationMarkerIcon = new OpenLayers.Icon('icons/marker.png', size, offset);
+    var stationMarkerIcon = new OpenLayers.Icon('icons/marker-de5749.png', size, offset);
 
     ce.elements = [
         { title : 'Temperature Max/Min',         id : 'TEMP',            ghcn_element_ids : ['TMAX', 'TMIN', 'NORMAL_TMAX', 'NORMAL_TMIN'] },

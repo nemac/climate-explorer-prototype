@@ -1,0 +1,67 @@
+#! /opt/local/bin/perl
+
+use strict;
+use GD;
+
+my $colors = [
+    { 'r' =>  90, 'g' => 135, 'b' => 164, 'hex' => '5a87a4' },
+    { 'r' => 122, 'g' =>  67, 'b' => 124, 'hex' => '7a437c' },
+    { 'r' => 222, 'g' =>  87, 'b' =>  73, 'hex' => 'de5749' },
+    { 'r' => 233, 'g' => 150, 'b' =>   0, 'hex' => 'e99600' },
+    { 'r' =>  75, 'g' => 152, 'b' =>  73, 'hex' => '4b9849' },
+    { 'r' => 101, 'g' =>  70, 'b' =>  74, 'hex' => '65464a' }
+    ];
+
+
+my $w = 21;
+my $h = 25;
+
+my $x = 10;
+my $y = 10;
+
+foreach my $color (@{$colors}) {
+    writeIcon($w, $h, $x, $y, $color, sprintf("marker-%s.png", $color->{'hex'}));
+}
+
+sub writeIcon {
+    my $w = shift;
+    my $h = shift;
+    my $x = shift;
+    my $y = shift;
+    my $color = shift;
+    my $filename = shift;
+
+    my $gd = GD::Image->new($w,$h, 1);
+
+    my $white = $gd->colorAllocate(255,255,255);
+    my $black = $gd->colorAllocate(0,0,0);
+    my $gdcolor = $gd->colorAllocate($color->{'r'}, $color->{'g'}, $color->{'b'});
+
+    $gd->transparent($white);
+
+    $gd->filledRectangle(0,0,$w,$h,$white);
+
+    my $poly = new GD::Polygon;
+    $poly->addPt(0,$y);
+    $poly->addPt($x,0);
+    $poly->addPt($w-1,$y);
+    $poly->addPt($x,$h-1);
+    $gd->filledPolygon($poly,$gdcolor);
+
+    $gd->setThickness(2);
+
+    $gd->setAntiAliased($black);
+    $gd->line(0,       $y,    $x,     0,  gdAntiAliased);
+    $gd->line($x,       0,  $w-1,    $y,  gdAntiAliased);
+    $gd->line($w-1,    $y,    $x,  $h-1,  gdAntiAliased);
+    $gd->line($x,    $h-1,     0,    $y,  gdAntiAliased);
+
+    $gd->arc($x,$y,2,2,0,360,gdAntiAliased);
+
+    open(IMG,">".$filename);
+    binmode IMG;
+    print IMG $gd->png;
+    close(IMG);
+    printf("wrote %s\n", $filename);
+}
+
