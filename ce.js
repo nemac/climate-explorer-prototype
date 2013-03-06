@@ -433,22 +433,22 @@
             var ghcn_element_ids = element.ghcn_element_ids;
             graphs.push({
                 title : element.title,
-                muglFunc : function (target) {
+                muglPromise : function () {
+                    var deferred = $.Deferred();
                     var dataFetcher = new ce.DataFetcher(stationid, ghcn_element_ids);
                     dataFetcher.done(function() {
                         graph.all_tpl_promises.done(function() {
                             var muglString = graph.buildMugl(stationid, parseInt(maxyear)-1, maxyear, [ element ], dataFetcher.data);
-                            window.multigraph.jQuery(target).multigraph({
-                                muglString : muglString
-                            });
+                            deferred.resolve(muglString);
                         });
                     });
+                    return deferred.promise();
                 }
             });
         });
 
 
-        var $station_graph_display = window.multigraph.jQuery('<div></div>').station_graph_display({
+        var $station_graph_display = $('<div></div>').station_graph_display({
             title  : name,
             graphs : graphs
         }).appendTo($('.multigraph-area'));
@@ -470,7 +470,7 @@
         right_sidebar_open();
         right_sidebar_opener_show(true);
 
-        var closable_multigraph = window.multigraph.jQuery('<div></div>').css({
+        var closable_multigraph = $('<div></div>').css({
             width: right_sidebar_width+'px',
             height: closable_multigraph_height+'px'
         }).closable_multigraph({
@@ -482,7 +482,7 @@
                     right_sidebar_opener_show(false);
                 }
             }
-        }).appendTo(window.multigraph.jQuery('.multigraph-area'));
+        }).appendTo($('.multigraph-area'));
 
         var dataFetcher = new ce.DataFetcher(stationid, ce.checked_ghcn_element_ids);
         dataFetcher.done(function() {

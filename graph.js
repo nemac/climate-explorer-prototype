@@ -93,7 +93,7 @@
                 graph.all_tpl_promises.done(function() {
                     var mugl = graph.buildMugl(stationid, minyear, maxyear, ce.checked_elements, dataFetcher.data);
                     $('#mugltext').val(mugl);
-                    window.multigraph.jQuery('#graph').multigraph({muglString : mugl});
+                    $('#graph').multigraph({muglString : mugl});
                 });
             });
 

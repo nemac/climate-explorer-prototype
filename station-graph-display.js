@@ -5,16 +5,17 @@
 // options: {
 //    title  : STRING,
 //    graphs : [ 
-//      { title : STRING, muglFunc : FUNCTION }
-//      { title : STRING, muglFunc : FUNCTION },
+//      { title : STRING, muglPromise : FUNCTION }
+//      { title : STRING, muglPromise : FUNCTION },
 //      ...
 //    ],
 //    graphHeight : INTEGER,    
 // }
 // 
 // Each element in the graphs object is a an object with the following properties:
-//   * title    : STRING (a title for the graph, to be used on a button for turning the graph on)              
-//   * muglFunc : a function that returns the MUGL for a graph
+//   * title        : STRING (a title for the graph, to be used on a button for turning the graph on)
+//   * muglPromise  : FUNCTION (a function that returns a promise that, when it resolves, will call
+//                    its `done` function with a single string argument which is the mugl for a graph)
 // 
 // methods:
 //   * displayGraph(i) - displays the graph at index in the original graphs list
@@ -41,14 +42,20 @@
 
         displayGraph : function(i) {
             return this.each(function() {
-                $(this).data('station_graph_display').graphs[i].muglFunc(
-                    $(Mustache.to_html(multigraphTpl, {
-                        //...
-                    })).css({
-                        width : $(this).width(),
-                        height : $(this).data('station_graph_display').graphHeight
-                    }).appendTo($(this).find('.graphs'))
-                );
+                var $this = $(this);
+                var $graphDiv = $(Mustache.to_html(multigraphTpl, {
+                    //...
+                })).css({
+                    width : $this.width(),
+                    height : $this.data('station_graph_display').graphHeight,
+                    background : '#ff0000'
+                }).appendTo($this.find('.graphs'));
+
+                $this.data('station_graph_display').graphs[i].muglPromise().done(function(muglString) {
+                    $graphDiv.multigraph({
+                        muglString : muglString
+                    });
+                });
             });
         },
 
