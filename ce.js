@@ -159,10 +159,24 @@
 
     ce.init = function() {
 
-        //NOTE: need to insure inventories have loaded before trying to use them!!!
+        $('#element-checks-container').css({
+            visibility : 'hidden'
+        });
+        var $inventory_loading_message =
+                $('<div class="inventory-loading"><img src="icons/ajax-loader.gif"> Loading Inventory...</div>').appendTo(
+                    $('#element-checks-wrapper')
+                );
+
+        var inventoryPromises = [];
         $.each(ce.elements, function (i,element) {
             $.each(element.ghcn_element_ids, function (j,ghcn_element_id) {
-                insureInventory(ghcn_element_id);
+                inventoryPromises.push(insureInventory(ghcn_element_id));
+            });
+        });
+        $.when.apply(this, inventoryPromises).then(function() {
+            $inventory_loading_message.remove();
+            $('#element-checks-container').css({
+                visibility : 'visible'
             });
         });
 

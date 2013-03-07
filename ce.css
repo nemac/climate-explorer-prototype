@@ -218,6 +218,16 @@ body {
   border: 1px solid #888;
 }
 
+#element-checks-wrapper {
+  position: relative;
+}
+
+#element-checks-wrapper .inventory-loading {
+  position: absolute;
+  left: 40px;
+  top: 20px;
+}
+
 #station-choice-message-container {
   margin:  5px;
   padding: 5px;
