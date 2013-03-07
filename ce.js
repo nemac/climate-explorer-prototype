@@ -466,7 +466,7 @@
             coords = coords.transform(new OpenLayers.Projection("EPSG:4326"),
                                       new OpenLayers.Projection("EPSG:900913"));
             var marker = new OpenLayers.Marker(coords,stationMarkerIcon.clone());
-            (function (marker) {
+            (function (marker, station) {
                 var name = station.name;
                 var id   = station.id;
                 var markerCoords = coords;
@@ -476,16 +476,19 @@
                 marker.selected = false;
                 var clickHandler = function(evt) {
                     $('#message')[0].innerHTML = 'You clicked on: ' + id;
-                    var color = getNewStationColor();
-                    marker.selected = true;
-                    marker.setUrl(color.icon);
-                    //icon = new OpenLayers.Icon(stationColors[0].icon, size, offset);
-                    //displayGraph(markerCoords, name, id, minyear, maxyear);
-                    displayStation(markerCoords, name, id, minyear, maxyear, color.color, marker);
+                    if (! station.onDisplay) {
+                        station.onDisplay = true;
+                        var color = getNewStationColor();
+                        marker.selected = true;
+                        marker.setUrl(color.icon);
+                        //icon = new OpenLayers.Icon(stationColors[0].icon, size, offset);
+                        //displayGraph(markerCoords, name, id, minyear, maxyear);
+                        displayStation(markerCoords, name, id, minyear, maxyear, color.color, marker);
+                    }
                 };
                 marker.events.register('click', marker, clickHandler);
                 marker.events.register('touchstart', marker, clickHandler);
-            }(marker));
+            }(marker, station));
             stationsLayer.addMarker(marker);
         }
         ce.map.addLayers([stationsLayer]);
@@ -556,6 +559,7 @@
                     right_sidebar_close();
                     right_sidebar_opener_show(false);
                 }
+                stations[stationid].onDisplay = false;
             }
         }).appendTo($('.multigraph-area'));
         $.each(ce.elements, function (i,element) {
