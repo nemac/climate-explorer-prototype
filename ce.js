@@ -11,6 +11,8 @@
     }
     var ce = window.ce;
 
+    var station_promise;
+
     var stations;
     var stationIds;
     var stationsLayer;
@@ -96,7 +98,7 @@
         $.each(ghcn_element_ids, function (i, ghcn_element_id) {
             var url;
             if (ghcn_element_id === 'DROUGHT_PDSI') {
-                url = 'http://dev.nemac.org/~mbp/drought-data/divisions/pdsi/' + stations[station_id].climdiv + '.dat';
+                url = 'http://dev.nemac.org/~mbp/drought-data/divisions/pdsi/' + stations[station_id].climdiv + '.txt';
             } else {
                 url = 'http://dev.nemac.org/~mbp/ghcn-mirror/datfiles/'+ghcn_element_id+'/' + station_id + '.dat';
             }
@@ -165,6 +167,18 @@
     var num_graphs = 0;
 
     ce.init = function() {
+
+//      station_promise = $.ajax({url : 'short-station-list.csv',
+        station_promise = $.ajax({url : 'ghcnd-stations-with-climdiv.csv',
+                //'small.csv',
+                dataType: "text",
+                success: function (data) {
+                    parseStations(data);
+                },
+                error: function (err) {
+                    console.log('ERROR');
+                    console.log(err);
+                }});
 
         $('#element-checks-container').css({
             visibility : 'hidden'
@@ -343,17 +357,6 @@
             });
         }
 
-        $.ajax({url : 'ghcnd-stations-with-climdiv.csv',
-                //'small.csv',
-                dataType: "text",
-                success: function (data) {
-                    parseStations(data);
-                },
-                error: function (err) {
-                    console.log('ERROR');
-                    console.log(err);
-                }});
-
         function insureInventory(ghcn_element_id) {
             var deferred;
             if (inventory[ghcn_element_id]) {
@@ -362,9 +365,8 @@
                 return deferred.promise();
             } else {
                 if (ghcn_element_id === 'DROUGHT_PDSI') {
-                    loadDroughtInventory(ghcn_element_id);
                     deferred = $.Deferred();
-                    deferred.resolve();
+                    loadDroughtInventory(ghcn_element_id, deferred);
                     return deferred.promise();
                 } else {
                     return $.ajax({url : 'inventory/' + ghcn_element_id + '.inv',
@@ -401,19 +403,22 @@
             }
         }
         
-        function loadDroughtInventory(ghcn_element_id) {
+        function loadDroughtInventory(ghcn_element_id, deferred) {
             var station;
             inventory[ghcn_element_id] = {};
-            for (i=0; i<stationIds.length; ++i) {
-                station = stations[stationIds[i]];
-                if (station.climdiv) {
-                    inventory[ghcn_element_id][station.id] = {
-                        min : '1985',
-                        max : '2013',
-                        cov : 1
-                    };
+            station_promise.done(function() {
+                for (i=0; i<stationIds.length; ++i) {
+                    station = stations[stationIds[i]];
+                    if (station.climdiv) {
+                        inventory[ghcn_element_id][station.id] = {
+                            min : '1895',
+                            max : '2013',
+                            cov : 1
+                        };
+                    }
                 }
-            }
+                deferred.resolve();
+            });
         }
         
         
@@ -551,19 +556,24 @@
     function displayStation(coords, name, stationid, minyear, maxyear, color, marker) {
 
         var graphs = [];
+/*
         var checked_elements = [];
+*/
+        var graphs_to_display = [];
 
         ++numberOfSelectedStations;
 
         right_sidebar_open();
         right_sidebar_opener_show(true);
 
+/*
         $.each(ce.elements, function (i,element) {
             if (element.checked) {
                 checked_elements.push(element);
             }
         });
-
+*/      
+        var j = 0;
         $.each(ce.elements, function (i,element) {
             var ghcn_element_ids = element.ghcn_element_ids;
             if (stationHasGHCNElements(stationid, ghcn_element_ids)) {
@@ -581,11 +591,14 @@
                         return deferred.promise();
                     }
                 });
+                if (element.checked) {
+                    graphs_to_display.push(j);
+                }
+                ++j;
             }
         });
 
         marker.selectedStationColor = color;
-
         var $station_graph_display = $('<div></div>').station_graph_display({
             title        : name,
             headerColor  : color,
@@ -606,11 +619,16 @@
                 stations[stationid].onDisplay = false;
             }
         }).appendTo($('.multigraph-area'));
+        $.each(graphs_to_display, function (i,j) {
+            $station_graph_display.station_graph_display('displayGraph', j);
+        });
+/*
         $.each(ce.elements, function (i,element) {
             if (element.checked) {
                 $station_graph_display.station_graph_display('displayGraph', i);
             }
         });
+*/
         
     }
     

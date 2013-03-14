@@ -24,7 +24,7 @@
         { key : 'vertical-axis-ytd-prcpmm',    url : 'mugl/vertical-axis-ytd-prcpmm.tpl.xml' },
         { key : 'vertical-axis-snowmm',        url : 'mugl/vertical-axis-snowmm.tpl.xml' },
         { key : 'vertical-axis-tempc',         url : 'mugl/vertical-axis-tempc.tpl.xml' },
-        { key : 'vertical-axis-drought-pdsi',  url : 'mugl/vertical-axis-drought-pdsi.tpl.xml' }
+        { key : 'vertical-axis-pdsi',          url : 'mugl/vertical-axis-pdsi.tpl.xml' }
     ];
 
     var tpl_promises = [];
@@ -259,6 +259,13 @@
                 position: verticalaxis_position
             }));
         }
+        if (element_list_contains_element_with_id(elements, 'DROUGHT_PDSI')) {
+            // add a snow vertical axis
+            verticalaxis_position -= verticalaxis_position_delta;
+            verticalaxes.push(Mustache.render(graph.tpl['vertical-axis-pdsi'], {
+                position: verticalaxis_position
+            }));
+        }
 
         //
         // Add plots
@@ -292,6 +299,11 @@
         if (element_list_contains_element_with_id(elements, 'SNOW')) {
             // add a precip plot
             plots.push(Mustache.render(graph.tpl['plot-snow'], {
+            }));
+        }
+        if (element_list_contains_element_with_id(elements, 'DROUGHT_PDSI')) {
+            // add a precip plot
+            plots.push(Mustache.render(graph.tpl['plot-drought-pdsi'], {
             }));
         }
 
@@ -333,6 +345,12 @@
             // add a precip data section
             datas.push(Mustache.render(graph.tpl['data-snow'], {
                 values : datas_to_values([data['SNOW']], [preciptransform])
+            }));
+        }
+        if (element_list_contains_element_with_id(elements, 'DROUGHT_PDSI')) {
+            // add a precip data section
+            datas.push(Mustache.render(graph.tpl['data-drought-pdsi'], {
+                values : data['DROUGHT_PDSI']
             }));
         }
 
