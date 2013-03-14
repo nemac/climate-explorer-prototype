@@ -18,11 +18,25 @@
     var stationsLayer;
     var inventory = {};
 
-    var size = new OpenLayers.Size(21,25);
+    var size = new OpenLayers.Size(14,24);
     var offset = new OpenLayers.Pixel(-(size.w)/2, -size.h);
-    var stationMarkerIcon = new OpenLayers.Icon('icons/marker-de5749.png', size, offset);
+    var defaultIconPath = 'icons/markers/24/fb6254.png';
+    var stationMarkerIcon = new OpenLayers.Icon(defaultIconPath, size, offset);
 
     var stationColors = [
+
+        { icon : 'icons/markers/24/00e03c.png', color : '#00e03c' }, // green
+        { icon : 'icons/markers/24/4462c8.png', color : '#4462c8' }, // blue
+        { icon : 'icons/markers/24/54d6d6.png', color : '#54d6d6' }, // cyan
+        { icon : 'icons/markers/24/7d54fb.png', color : '#7d54fb' }, // purple
+        //the magenta marker isn't different enough from red, so don't use it
+        //{ icon : 'icons/markers/24/e14f9e.png', color : '#e14f9e' }, // magenta
+        // keep this out out, since we're using it as the default:
+        //{ icon : 'icons/markers/24/fb6254.png', color : '#fb6254' }, // red
+        { icon : 'icons/markers/24/fcf357.png', color : '#fcf357' } // yellow
+
+/*
+
         { icon : 'icons/marker-4b9849.png', color : '#4b9849' },
         { icon : 'icons/marker-5a87a4.png', color : '#5a87a4' },
         { icon : 'icons/marker-65464a.png', color : '#65464a' },
@@ -30,6 +44,7 @@
         // keep this out out, since we're using it as the default:
         //{ icon : 'icons/marker-de5749.png', color : '#de5749' }, 
         { icon : 'icons/marker-e99600.png', color : '#e99600' }
+*/
     ];
 
     var numberOfSelectedStations = 0;
@@ -604,7 +619,7 @@
             headerColor  : color,
             graphs       : graphs,
             afterClose   : function () {
-                marker.setUrl('icons/marker-de5749.png');
+                marker.setUrl(defaultIconPath);
                 marker.selected = false;
                 if ($('.right-sidebar-show-selected input[type=checkbox]').is(':checked')) {
                     marker.display(false);
