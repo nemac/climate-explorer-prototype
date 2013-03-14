@@ -11,6 +11,7 @@
         { key : 'data-ytd-prcp',               url : 'mugl/data-ytd-prcp.tpl.xml' },
         { key : 'data-normal-ytd-prcp',        url : 'mugl/data-normal-ytd-prcp.tpl.xml' },
         { key : 'data-snow',                   url : 'mugl/data-snow.tpl.xml' },
+        { key : 'data-drought-pdsi',           url : 'mugl/data-drought-pdsi.tpl.xml' },
         { key : 'mugl',                        url : 'mugl/mugl.tpl.xml' },
         { key : 'plot-temp',                   url : 'mugl/plot-temp.tpl.xml' },
         { key : 'plot-normal-temp',            url : 'mugl/plot-normal-temp.tpl.xml' },
@@ -18,10 +19,12 @@
         { key : 'plot-ytd-prcp',               url : 'mugl/plot-ytd-prcp.tpl.xml' },
         { key : 'plot-normal-ytd-prcp',        url : 'mugl/plot-normal-ytd-prcp.tpl.xml' },
         { key : 'plot-snow',                   url : 'mugl/plot-snow.tpl.xml' },
+        { key : 'plot-drought-pdsi',           url : 'mugl/plot-drought-pdsi.tpl.xml' },
         { key : 'vertical-axis-prcpmm',        url : 'mugl/vertical-axis-prcpmm.tpl.xml' },
         { key : 'vertical-axis-ytd-prcpmm',    url : 'mugl/vertical-axis-ytd-prcpmm.tpl.xml' },
         { key : 'vertical-axis-snowmm',        url : 'mugl/vertical-axis-snowmm.tpl.xml' },
-        { key : 'vertical-axis-tempc',         url : 'mugl/vertical-axis-tempc.tpl.xml' }
+        { key : 'vertical-axis-tempc',         url : 'mugl/vertical-axis-tempc.tpl.xml' },
+        { key : 'vertical-axis-drought-pdsi',  url : 'mugl/vertical-axis-drought-pdsi.tpl.xml' }
     ];
 
     var tpl_promises = [];

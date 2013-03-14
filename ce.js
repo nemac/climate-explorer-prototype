@@ -55,7 +55,8 @@
     ce.elements = [
         { title : 'Temperature Max/Min',         id : 'TEMP',            ghcn_element_ids : ['TMAX', 'TMIN', 'NORMAL_TMAX', 'NORMAL_TMIN'] },
         { title : 'YTD Precipitation',           id : 'YTD_PRCP',        ghcn_element_ids : ['YTD_PRCP', 'NORMAL_YTD_PRCP'] },
-        { title : 'Snow',                        id : 'SNOW',            ghcn_element_ids : ['SNOW'] }
+        { title : 'Snow',                        id : 'SNOW',            ghcn_element_ids : ['SNOW'] },
+        { title : 'Drought',                     id : 'DROUGHT_PDSI',    ghcn_element_ids : ['DROUGHT_PDSI'] }
 /*
         { title : 'Temperature Max/Min',         id : 'TEMP',            ghcn_element_ids : ['TMAX', 'TMIN'] },
         { title : 'Normal Temperature Max/Min',  id : 'NORMAL_TEMP',     ghcn_element_ids : ['NORMAL_TMAX', 'NORMAL_TMIN'] },
@@ -93,9 +94,15 @@
         that.ajaxPromises     = [];
 
         $.each(ghcn_element_ids, function (i, ghcn_element_id) {
+            var url;
+            if (ghcn_element_id === 'DROUGHT_PDSI') {
+                url = 'http://dev.nemac.org/~mbp/drought-data/divisions/pdsi/' + stations[station_id].climdiv + '.dat';
+            } else {
+                url = 'http://dev.nemac.org/~mbp/ghcn-mirror/datfiles/'+ghcn_element_id+'/' + station_id + '.dat';
+            }
             that.ajaxPromises.push(
                 $.ajax({
-                    url : 'http://dev.nemac.org/~mbp/ghcn-mirror/datfiles/'+ghcn_element_id+'/' + station_id + '.dat',
+                    url : url,
                     dataType: "text",
                     success:  function (data) {
                         that.data[ghcn_element_id] = data;
@@ -336,7 +343,7 @@
             });
         }
 
-        $.ajax({url : 'ghcnd-stations.csv',
+        $.ajax({url : 'ghcnd-stations-with-climdiv.csv',
                 //'small.csv',
                 dataType: "text",
                 success: function (data) {
@@ -354,15 +361,22 @@
                 deferred.resolve();
                 return deferred.promise();
             } else {
-                return $.ajax({url : 'inventory/' + ghcn_element_id + '.inv',
-                               dataType : "text",
-                               success: function (data) {
-                                   loadInventory(ghcn_element_id, data);
-                               },
-                               error: function (err) {
-                                   console.log('ERROR');
-                                   console.log(err);
-                               }});
+                if (ghcn_element_id === 'DROUGHT_PDSI') {
+                    loadDroughtInventory(ghcn_element_id);
+                    deferred = $.Deferred();
+                    deferred.resolve();
+                    return deferred.promise();
+                } else {
+                    return $.ajax({url : 'inventory/' + ghcn_element_id + '.inv',
+                                   dataType : "text",
+                                   success: function (data) {
+                                       loadInventory(ghcn_element_id, data);
+                                   },
+                                   error: function (err) {
+                                       console.log('ERROR');
+                                       console.log(err);
+                                   }});
+                }
             }
         }
 
@@ -387,6 +401,21 @@
             }
         }
         
+        function loadDroughtInventory(ghcn_element_id) {
+            var station;
+            inventory[ghcn_element_id] = {};
+            for (i=0; i<stationIds.length; ++i) {
+                station = stations[stationIds[i]];
+                if (station.climdiv) {
+                    inventory[ghcn_element_id][station.id] = {
+                        min : '1985',
+                        max : '2013',
+                        cov : 1
+                    };
+                }
+            }
+        }
+        
         
         function parseStations(data) {
             var lines = data.split("\n"),
@@ -402,8 +431,9 @@
                         lat  : columns[1],
                         lon  : columns[2],
                         elev : columns[3],
-                        //state : columns[4],
-                        name : columns[5]
+                        climdiv : columns[4],
+                        //state : columns[5],
+                        name : columns[6]
                     };
                     stationIds.push(columns[0]);
                 }

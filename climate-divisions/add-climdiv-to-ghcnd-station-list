@@ -1,0 +1,81 @@
+#! /usr/bin/python
+
+import re
+from osgeo import ogr
+
+driver = ogr.GetDriverByName('ESRI Shapefile')
+dataSource = driver.Open('gis/GIS.OFFICIAL_CLIM_DIVISIONS.shp', 0)
+
+layer = dataSource.GetLayer(0)
+### fields:
+###
+###    0   OBJECTID
+###    1   STATE
+###    2   STATE_FIPS
+###    3   CD_2DIG
+###    4   STATE_CODE
+###    5   CLIMDIV
+###    6   CD_NEW
+###    7   FIPS_CD
+###    8   NCDC_GEO_I
+###    9   NAME
+###   10   ST_ABBRV
+###   11   SHAPE_AREA
+###   12   SHAPE_LEN
+
+spatialRef = layer.GetSpatialRef()
+
+
+features = []
+feature = layer.GetNextFeature()
+while feature:
+    featureGeom = feature.GetGeometryRef()
+    env = featureGeom.GetEnvelope()
+    features.append({
+        'geom'    : featureGeom,
+        'feature' : feature,
+        'lonMin'  : env[0],
+        'lonMax'  : env[1],
+        'latMin'  : env[2],
+        'latMax'  : env[3]
+        })
+    feature = layer.GetNextFeature()
+
+pt = ogr.Geometry(ogr.wkbPoint)
+pt.AssignSpatialReference(spatialRef)
+
+def find_climate_division_containing_point(lon, lat):
+    for feature in features:
+        if (lon >= feature['lonMin'] and
+            lon <= feature['lonMax'] and
+            lat >= feature['latMin'] and
+            lat <= feature['latMax']):
+            pt.SetPoint(0, lon, lat)
+            if pt.Within(feature['geom']):
+                return {
+                    'state'   : feature['feature'].GetField(1),
+                    'name'    : feature['feature'].GetField(9),
+                    'climdiv' : feature['feature'].GetField(5)
+                    };
+    return None
+
+
+f = open('../ghcnd-stations.csv', 'r')
+for line in f:
+    line = line.strip()
+    fields = re.split(r'\|', line)
+    station_id  = fields[0]
+    lat         = float(fields[1])
+    lon         = float(fields[2])
+    elev        = float(fields[3])
+    state       = fields[4]
+    if state != "":
+        d = find_climate_division_containing_point(lon, lat)
+        if d:
+            fields.insert(4, "%04d05" % d['climdiv'])
+        else:
+            fields.insert(4, '')
+    else:
+        fields.insert(4, '')
+    print "|".join(fields)
+f.close()
