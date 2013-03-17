@@ -16,6 +16,7 @@
     var stations;
     var stationIds;
     var stationsLayer;
+    var station_graph_displays = [];
     var inventory = {};
 
     var size = new OpenLayers.Size(14,24);
@@ -52,6 +53,16 @@
     var stationColorIndex = stationColors.length - 1;
 
     var stationColorsInUse = {};
+
+    function remove_item_from_list(item, list) {
+        var i;
+        for (i=0; i<list.length; ++i) {
+            if (list[i] === item) {
+                list.splice(i,1);
+                break;
+            }
+        }
+    }
 
     function freeStationColor(color) {
         delete stationColorsInUse[color];
@@ -218,6 +229,29 @@
 
         $('#left-sidebar').css({width: left_sidebar_width+'px'});
         $('#right-sidebar').css({width: right_sidebar_width+'px'});
+
+        $('#right-sidebar').resizable({
+            handles: "w",
+            ghost: true,
+            minWidth: 300,
+            resize: function() {
+                $(this).css("left", 'auto');
+                $(this).css("right", 0);
+                $(this).css("top", 0);
+                $(this).css('height', '100%');
+            },
+            stop: function() {
+                $(this).css("left", 'auto');
+                $(this).css("right", 0);
+                $(this).css("top", 0);
+                $(this).css('height', '100%');
+                var newWidth = $(this).width();
+                $.each(station_graph_displays, function() {
+                    this.station_graph_display('setWidth', newWidth);
+                });
+            }
+        });
+
 
         $('.left-sidebar-closer').click(function() {
             $('#left-sidebar').animate({ left: '-='+left_sidebar_width+'px' }, 400, function() {
@@ -632,8 +666,10 @@
                     right_sidebar_opener_show(false);
                 }
                 stations[stationid].onDisplay = false;
+                remove_item_from_list($station_graph_display, station_graph_displays.push);
             }
         }).appendTo($('.multigraph-area'));
+        station_graph_displays.push($station_graph_display);
         $.each(graphs_to_display, function (i,j) {
             $station_graph_display.station_graph_display('displayGraph', j);
         });

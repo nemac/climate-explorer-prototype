@@ -63,67 +63,6 @@
 
     var methods = {
 
-        displayGraph : function(i) {
-            return this.each(function() {
-                var $this = $(this);
-                var graph = $this.data('station_graph_display').graphs[i];
-                var $graphDiv = $(Mustache.to_html(multigraphTpl, {
-                    title : graph.title
-                })).css({
-                    width : $this.width(),
-                    height : $this.data('station_graph_display').graphHeight
-                }).appendTo($this.find('.graphs'));
-                
-                graph.muglPromise().done(function(muglString) {
-                    $graphDiv.empty();
-                    $graphDiv.multigraph({
-                        muglString : muglString
-                    });
-                    var $closeButton = $(Mustache.render(multigraphCloseButtonTpl, {
-                    })).click(function(e) {
-                        $graphDiv.remove();
-                        e.preventDefault();
-                        graph.onDisplay = false;
-                        methods._updateDisplayLinks.apply($this);
-                    });
-                    $graphDiv.append($closeButton);
-                });
-                graph.onDisplay = true;
-                methods._updateDisplayLinks.apply($this);
-            });
-        },
-
-        _updateDisplayLinks : function() {
-            return this.each(function() {
-                var $this = $(this);
-                var links = [];
-                $.each($this.data('station_graph_display').graphs, function(i,graph) {
-                    if (! graph.onDisplay) {
-                        var $link = $(Mustache.render(graphLinkTpl, {
-                            title : graph.title
-                        })).click(function (e) {
-                            methods.displayGraph.call($this, i);
-                            e.preventDefault();
-                        });
-                        links.push($link);
-                    }
-                });
-                var $buttons = $this.find('.control .buttons');
-                $buttons.empty();
-                if (links.length > 0) {
-                    $this.find('.control').css({display: 'block'});
-                    $.each(links, function(i,link) {
-                        if (i > 0) {
-                            $buttons.append($('<span>,</span>'));
-                        }
-                        $buttons.append(link);
-                    });
-                } else {
-                    $this.find('.control').css({display: 'none'});
-                }
-            });            
-        },
-
         init : function(options) {
             return this.each(function() {
                 var $this = $(this),
@@ -173,7 +112,86 @@
 
                 return this;
             });
+        },
+
+        displayGraph : function(i) {
+            return this.each(function() {
+                var $this = $(this);
+                var graph = $this.data('station_graph_display').graphs[i];
+                var $graphDiv = $(Mustache.to_html(multigraphTpl, {
+                    title : graph.title
+                })).css({
+                    width : $this.width(),
+                    height : $this.data('station_graph_display').graphHeight
+                }).appendTo($this.find('.graphs'));
+                
+                graph.muglPromise().done(function(muglString) {
+                    $graphDiv.empty();
+                    $graphDiv.multigraph({
+                        muglString : muglString
+                    });
+                    var $closeButton = $(Mustache.render(multigraphCloseButtonTpl, {
+                    })).click(function(e) {
+                        $graphDiv.remove();
+                        e.preventDefault();
+                        graph.onDisplay = false;
+                        methods._updateDisplayLinks.apply($this);
+                    });
+                    $graphDiv.append($closeButton);
+                });
+                graph.onDisplay = true;
+                graph.$graphDiv = $graphDiv;
+                methods._updateDisplayLinks.apply($this);
+            });
+        },
+
+        setWidth : function(width) {
+            return this.each(function() {
+                var graphHeight = $(this).data('station_graph_display').graphHeight;
+                $.each($(this).data('station_graph_display').graphs, function(i,graph) {
+                    if (graph.onDisplay && graph.$graphDiv) {
+                        graph.$graphDiv.width(width).height(graphHeight);
+                        graph.$graphDiv.multigraph('done', function (m) {
+                            m.resizeSurface(width, graphHeight);
+                            m.width(width).height(graphHeight);
+                            m.redraw();
+                        });
+                    }
+                });
+            });
+        },
+
+        _updateDisplayLinks : function() {
+            return this.each(function() {
+                var $this = $(this);
+                var links = [];
+                $.each($this.data('station_graph_display').graphs, function(i,graph) {
+                    if (! graph.onDisplay) {
+                        var $link = $(Mustache.render(graphLinkTpl, {
+                            title : graph.title
+                        })).click(function (e) {
+                            methods.displayGraph.call($this, i);
+                            e.preventDefault();
+                        });
+                        links.push($link);
+                    }
+                });
+                var $buttons = $this.find('.control .buttons');
+                $buttons.empty();
+                if (links.length > 0) {
+                    $this.find('.control').css({display: 'block'});
+                    $.each(links, function(i,link) {
+                        if (i > 0) {
+                            $buttons.append($('<span>,</span>'));
+                        }
+                        $buttons.append(link);
+                    });
+                } else {
+                    $this.find('.control').css({display: 'none'});
+                }
+            });            
         }
+
 
     };
 
