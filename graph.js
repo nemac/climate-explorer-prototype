@@ -12,6 +12,7 @@
         { key : 'data-normal-ytd-prcp',        url : 'mugl/data-normal-ytd-prcp.tpl.xml' },
         { key : 'data-snow',                   url : 'mugl/data-snow.tpl.xml' },
         { key : 'data-drought-pdsi',           url : 'mugl/data-drought-pdsi.tpl.xml' },
+        { key : 'data-ndvi',                   url : 'mugl/data-ndvi.tpl.xml' },
         { key : 'mugl',                        url : 'mugl/mugl.tpl.xml' },
         { key : 'plot-temp',                   url : 'mugl/plot-temp.tpl.xml' },
         { key : 'plot-normal-temp',            url : 'mugl/plot-normal-temp.tpl.xml' },
@@ -20,11 +21,13 @@
         { key : 'plot-normal-ytd-prcp',        url : 'mugl/plot-normal-ytd-prcp.tpl.xml' },
         { key : 'plot-snow',                   url : 'mugl/plot-snow.tpl.xml' },
         { key : 'plot-drought-pdsi',           url : 'mugl/plot-drought-pdsi.tpl.xml' },
+        { key : 'plot-ndvi',                   url : 'mugl/plot-ndvi.tpl.xml' },
         { key : 'vertical-axis-prcpmm',        url : 'mugl/vertical-axis-prcpmm.tpl.xml' },
         { key : 'vertical-axis-ytd-prcpmm',    url : 'mugl/vertical-axis-ytd-prcpmm.tpl.xml' },
         { key : 'vertical-axis-snowmm',        url : 'mugl/vertical-axis-snowmm.tpl.xml' },
         { key : 'vertical-axis-tempc',         url : 'mugl/vertical-axis-tempc.tpl.xml' },
-        { key : 'vertical-axis-pdsi',          url : 'mugl/vertical-axis-pdsi.tpl.xml' }
+        { key : 'vertical-axis-pdsi',          url : 'mugl/vertical-axis-pdsi.tpl.xml' },
+        { key : 'vertical-axis-ndvi',          url : 'mugl/vertical-axis-ndvi.tpl.xml' }
     ];
 
     var tpl_promises = [];
@@ -266,6 +269,13 @@
                 position: verticalaxis_position
             }));
         }
+        if (element_list_contains_element_with_id(elements, 'NDVI')) {
+            // add a snow vertical axis
+            verticalaxis_position -= verticalaxis_position_delta;
+            verticalaxes.push(Mustache.render(graph.tpl['vertical-axis-ndvi'], {
+                position: verticalaxis_position
+            }));
+        }
 
         //
         // Add plots
@@ -305,6 +315,12 @@
             // add a precip plot
             plots.push(Mustache.render(graph.tpl['plot-drought-pdsi'], {
             }));
+        }
+        if (element_list_contains_element_with_id(elements, 'NDVI')) {
+            // add a precip plot
+            plots.push(Mustache.render(graph.tpl['plot-ndvi'], {
+            }));
+
         }
 
         //
@@ -351,6 +367,12 @@
             // add a precip data section
             datas.push(Mustache.render(graph.tpl['data-drought-pdsi'], {
                 values : data['DROUGHT_PDSI']
+            }));
+        }
+        if (element_list_contains_element_with_id(elements, 'NDVI')) {
+            // add a precip data section
+            datas.push(Mustache.render(graph.tpl['data-ndvi'], {
+                values : data['NDVI']
             }));
         }
 

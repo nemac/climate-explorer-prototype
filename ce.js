@@ -81,17 +81,19 @@
     }
 
     ce.elements = [
-        { title : 'Temperature Max/Min',         id : 'TEMP',            ghcn_element_ids : ['TMAX', 'TMIN', 'NORMAL_TMAX', 'NORMAL_TMIN'] },
-        { title : 'YTD Precipitation',           id : 'YTD_PRCP',        ghcn_element_ids : ['YTD_PRCP', 'NORMAL_YTD_PRCP'] },
-        { title : 'Snow',                        id : 'SNOW',            ghcn_element_ids : ['SNOW'] },
-        { title : 'Drought',                     id : 'DROUGHT_PDSI',    ghcn_element_ids : ['DROUGHT_PDSI'] }
+  { title : 'Temperature Max/Min',         checkbox: true,     id : 'TEMP',          ghcn_element_ids : ['TMAX', 'TMIN',
+                                                                                                         'NORMAL_TMAX', 'NORMAL_TMIN'] },
+  { title : 'YTD Precipitation',           checkbox: true,     id : 'YTD_PRCP',      ghcn_element_ids : ['YTD_PRCP', 'NORMAL_YTD_PRCP'] },
+  { title : 'Snow',                        checkbox: true,     id : 'SNOW',          ghcn_element_ids : ['SNOW'] },
+  { title : 'Drought',                     checkbox: false,    id : 'DROUGHT_PDSI',  ghcn_element_ids : ['DROUGHT_PDSI'] },
+  { title : 'NDVI',                        checkbox: false,    id : 'NDVI',          ghcn_element_ids : ['NDVI'] }
 /*
-        { title : 'Temperature Max/Min',         id : 'TEMP',            ghcn_element_ids : ['TMAX', 'TMIN'] },
-        { title : 'Normal Temperature Max/Min',  id : 'NORMAL_TEMP',     ghcn_element_ids : ['NORMAL_TMAX', 'NORMAL_TMIN'] },
-        { title : 'YTD Precipitation',           id : 'YTD_PRCP',        ghcn_element_ids : ['YTD_PRCP'] },
-        { title : 'Normal Precipitation',        id : 'NORMAL_YTD_PRCP', ghcn_element_ids : ['NORMAL_YTD_PRCP'] },
-        { title : 'Precipitation',               id : 'PRCP',            ghcn_element_ids : ['PRCP'] },
-        { title : 'Snow',                        id : 'SNOW',            ghcn_element_ids : ['SNOW'] }
+  { title : 'Temperature Max/Min',         id : 'TEMP',            ghcn_element_ids : ['TMAX', 'TMIN'] },
+  { title : 'Normal Temperature Max/Min',  id : 'NORMAL_TEMP',     ghcn_element_ids : ['NORMAL_TMAX', 'NORMAL_TMIN'] },
+  { title : 'YTD Precipitation',           id : 'YTD_PRCP',        ghcn_element_ids : ['YTD_PRCP'] },
+  { title : 'Normal Precipitation',        id : 'NORMAL_YTD_PRCP', ghcn_element_ids : ['NORMAL_YTD_PRCP'] },
+  { title : 'Precipitation',               id : 'PRCP',            ghcn_element_ids : ['PRCP'] },
+  { title : 'Snow',                        id : 'SNOW',            ghcn_element_ids : ['SNOW'] }
 */
     ];
 
@@ -125,6 +127,9 @@
             var url;
             if (ghcn_element_id === 'DROUGHT_PDSI') {
                 url = 'http://dev.nemac.org/~mbp/drought-data/divisions/pdsi/' + stations[station_id].climdiv + '.txt';
+            } else if (ghcn_element_id === 'NDVI') {
+                var station = stations[station_id];
+                url = sprintf('http://rain.nemac.org/timeseries/csv-nad83.cgi?args=CONUS_NDVI,%s,%s', station.lon, station.lat);
             } else {
                 url = 'http://dev.nemac.org/~mbp/ghcn-mirror/datfiles/'+ghcn_element_id+'/' + station_id + '.dat';
             }
@@ -320,22 +325,24 @@
         var i;
         for (i=0; i<ce.elements.length; ++i) {
             var element = ce.elements[i];
-            $('#element-checkboxes').append(
-                $(Mustache.render(''
-                                  + '<div class="element-checkbox">'
-                                  +   '<input type="checkbox" id="checkbox-{{{id}}}"></input>'
-                                  +   '<label for="{{{id}}}">{{{title}}}</label>'
-                                  + '</div>',
-                                  {
-                                      id : element.id,
-                                      title : element.title
-                                  }))
-            );
-            (function(element) {
-                $('#checkbox-'+element.id).click(function() {
-                    updateStations();
-                });
-            }(element));
+            if (element.checkbox) {
+                $('#element-checkboxes').append(
+                    $(Mustache.render(''
+                                      + '<div class="element-checkbox">'
+                                      +   '<input type="checkbox" id="checkbox-{{{id}}}"></input>'
+                                      +   '<label for="{{{id}}}">{{{title}}}</label>'
+                                      + '</div>',
+                                      {
+                                          id : element.id,
+                                          title : element.title
+                                      }))
+                );
+                (function(element) {
+                    $('#checkbox-'+element.id).click(function() {
+                        updateStations();
+                    });
+                }(element));
+            }
         }
 
         function updateStations() {
@@ -417,6 +424,10 @@
                     deferred = $.Deferred();
                     loadDroughtInventory(ghcn_element_id, deferred);
                     return deferred.promise();
+                } else if (ghcn_element_id === 'NDVI') {
+                    deferred = $.Deferred();
+                    loadNDVIInventory(ghcn_element_id, deferred);
+                    return deferred.promise();
                 } else {
                     return $.ajax({url : 'inventory/' + ghcn_element_id + '.inv',
                                    dataType : "text",
@@ -462,6 +473,24 @@
                         inventory[ghcn_element_id][station.id] = {
                             min : '1895',
                             max : '2013',
+                            cov : 1
+                        };
+                    }
+                }
+                deferred.resolve();
+            });
+        }
+
+        function loadNDVIInventory(ghcn_element_id, deferred) {
+            var station;
+            inventory[ghcn_element_id] = {};
+            station_promise.done(function() {
+                for (i=0; i<stationIds.length; ++i) {
+                    station = stations[stationIds[i]];
+                    if (station.climdiv) {
+                        inventory[ghcn_element_id][station.id] = {
+                            min : '2004',
+                            max : '2012',
                             cov : 1
                         };
                     }
