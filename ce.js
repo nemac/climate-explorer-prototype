@@ -81,12 +81,13 @@
     }
 
     ce.elements = [
-  { title : 'Temperature Max/Min',         checkbox: true,     id : 'TEMP',          ghcn_element_ids : ['TMAX', 'TMIN',
-                                                                                                         'NORMAL_TMAX', 'NORMAL_TMIN'] },
-  { title : 'YTD Precipitation',           checkbox: true,     id : 'YTD_PRCP',      ghcn_element_ids : ['YTD_PRCP', 'NORMAL_YTD_PRCP'] },
-  { title : 'Snow',                        checkbox: true,     id : 'SNOW',          ghcn_element_ids : ['SNOW'] },
-  { title : 'Drought',                     checkbox: false,    id : 'DROUGHT_PDSI',  ghcn_element_ids : ['DROUGHT_PDSI'] },
-  { title : 'NDVI',                        checkbox: false,    id : 'NDVI',          ghcn_element_ids : ['NDVI'] }
+  { title : 'Temperature Max/Min',      checkbox: true,     id : 'TEMP',          ghcn_element_ids : ['TMAX', 'TMIN',
+                                                                                                      'NORMAL_TMAX', 'NORMAL_TMIN'] },
+  { title : 'YTD Precipitation',        checkbox: true,     id : 'YTD_PRCP',      ghcn_element_ids : ['YTD_PRCP', 'NORMAL_YTD_PRCP'] },
+  { title : '30-Day Precipitation',     checkbox: true,     id : '30D_PRCP',      ghcn_element_ids : ['30D_PRCP', 'NORMAL_30D_PRCP'] },
+  { title : 'Snow',                     checkbox: true,     id : 'SNOW',          ghcn_element_ids : ['SNOW'] },
+  { title : 'Drought',                  checkbox: false,    id : 'DROUGHT_PDSI',  ghcn_element_ids : ['DROUGHT_PDSI'] },
+  { title : 'NDVI',                     checkbox: false,    id : 'NDVI',          ghcn_element_ids : ['NDVI'] }
 /*
   { title : 'Temperature Max/Min',         id : 'TEMP',            ghcn_element_ids : ['TMAX', 'TMIN'] },
   { title : 'Normal Temperature Max/Min',  id : 'NORMAL_TEMP',     ghcn_element_ids : ['NORMAL_TMAX', 'NORMAL_TMIN'] },
