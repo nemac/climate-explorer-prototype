@@ -232,7 +232,7 @@
 
     function normal30dpreciptransform(x) {
         var v = parseFloat(x);
-        return sprintf("%.1f", 25.4*v/10.0); // convert hundredths of inches to mm
+        return sprintf("%.1f", 25.4*v/100.0); // convert thousandths of inches to mm ??? !!!!
     }
 
 

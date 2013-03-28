@@ -8,5 +8,6 @@
     </verticalaxis>
     <renderer type="line">
       <option name="linecolor" value="0x660000"/>
+      <option name="linewidth" value="2"/>
     </renderer>
   </plot>
